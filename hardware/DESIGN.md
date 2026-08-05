@@ -6,10 +6,10 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 
 | IC | Part | LCSC | Package | Notes |
 |----|------|------|---------|-------|
-| MCU | STM32G431KBU6 | C529358 | QFN-32 5x5mm | Consign. Native OpenOSD-X target. |
+| MCU | STM32G431KBU6 | C529358 | QFN-32 5x5mm | Native OpenOSD-X target. |
 | RF Synth | RTC6705 | C913074 | QFN-40 6x6mm | Consign. No alternative exists. |
 | FEM | SKY85743-21 | C5348950 | LGA-24 3x5mm | 5V supply! Max +10dBm input! |
-| Buck 5V | LMR51420YDDCR | C5383002 | SOT-23-6 | Consign. 1.1MHz, PFM. |
+| Buck 5V | LMR51420YDDCR | C5383002 | SOT-23-6 | 1.1MHz, PFM. |
 | LDO 3.3V | TLV75733PDRVR | C2868428 | WSON-6 2x2mm | 1A, 6.5uVrms noise |
 | Rev Pol | AO3401A | C15127 | SOT-23 2.9x1.6mm | -30V, BASIC part, $0.05 |
 | NTC | NCP15XH103F03RC | C77131 | 0402 | 10kOhm, B=3380K |
@@ -21,7 +21,7 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 | WS2812 | WS2812C-2020-V1 | C2976072 | 2x2mm | Status LED |
 | LED | 16-213/G6C-AK2L2VY/3T | C471422 | 0402 green | Power indicator |
 
-## Passive BOM (all 0402, JLCPCB basic parts)
+## Passive BOM (0402 unless noted, JLCPCB basic parts)
 
 | Value | LCSC | Use |
 |-------|------|-----|
@@ -30,7 +30,8 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 | 10nF X7R 50V | C15195 | HF decoupling |
 | 100nF X7R 16V | C1525 | IC decoupling (all), CBOOT |
 | 1uF X5R 25V | C52923 | RTC6705 REG1D8 decoupling |
-| 4.7uF X5R 10V | C23733 | Buck CIN, general bulk |
+| 4.7uF X5R 10V | C23733 | General bulk (5V and 3.3V rails) |
+| 4.7uF X7R 50V (1206) | C29823 | Buck CIN (2x) |
 | 10uF X5R 6.3V | C15525 | Buck COUT, SKY85743 VCC2 |
 | 10pF C0G | - | RF DC blocking (SKY85743 TX_IN, DET) |
 | 75R | C25133 | Video termination |
@@ -45,11 +46,12 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 | 510k | C11616 | Video bias |
 | 560k | C25864 | Video bias |
 
-## Consign Parts (3, source externally and supply to JLCPCB)
+## Consign Parts (1, source externally and supply to JLCPCB)
 
-- **STM32G431KBU6**: 0 stock LCSC. Source DigiKey/Mouser.
-- **RTC6705**: 0 stock LCSC. No alternative. Source AliExpress/Taobao.
-- **LMR51420YDDCR**: 0 stock LCSC. Source DigiKey/Mouser.
+- **RTC6705**: 0 stock LCSC (checked 2026-08-05). No alternative. Source AliExpress/Taobao.
+
+STM32G431KBU6 (C529358) and LMR51420YDDCR (C5383002) are in stock at LCSC and in the
+JLCPCB assembly library (checked 2026-08-05): order via JLCPCB assembly, no consign needed.
 
 ## SKY85743-21 Pinout and Design Info
 
@@ -96,8 +98,8 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 
 ### Attenuator design (6dB pi-pad, 50R)
 
-RTC6705 PAOUT (+13dBm) -> series 17.6R -> shunt 150R to GND on each side -> SKY85743 TX_IN (+7dBm).
-Use nearest standard 0402 values. Tune on bench.
+RTC6705 PAOUT (+13dBm) -> shunt 150R to GND -> series 37.4R -> shunt 150R to GND -> SKY85743 TX_IN (+7dBm).
+Nearest standard 0402 values: 150R shunts, 36R or 39R series. Tune on bench.
 
 ## RTC6705 Pinout and Design Info
 
@@ -233,7 +235,7 @@ KiCad 9 hierarchical, root `OpenVTX.kicad_sch` plus 4 sub-sheets (not created ye
 - MCU is a native QFN-32 target, no pin remap needed
 - VPD calibration table required per board (spectrum analyzer needed)
 - VPD loop needs adaptation: SKY85743 logarithmic detector replaces RTC6671 linear detector
-- Discord: https://discord.gg/YtnWQyGRB6
+- Discord: https://discord.gg/9qxJNTPSPs
 
 ## Reference Documents
 
