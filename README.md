@@ -1,21 +1,23 @@
-# OpenVTX (WIP)
+# OpenVTX
 
 Open-source 5.8GHz analog video transmitter with software-defined OSD, based on [OpenOSD-X](https://github.com/OpenOSD-X) firmware.
 
-## Features
+Early stage: parts are selected and project-local libraries are in place. Schematic and layout are not started yet. The full design reference lives in [hardware/DESIGN.md](hardware/DESIGN.md).
+
+## Planned Features
 
 ### RF
-- **RTC6705** 5.8GHz FM synthesizer — 40+ channels (A/B/E/F/R bands)
-- **SKY85743-21** FEM — PA with integrated power detector, ~500mW CW output
+- **RTC6705** 5.8GHz FM synthesizer: 40+ channels (A/B/E/F/R bands)
+- **SKY85743-21** FEM: PA with integrated power detector, ~500mW CW output
 - IPEX/u.FL antenna connector
 
 ### OSD
-- Software-defined analog OSD via STM32G4 OPAMP/DAC/DMA — no MAX7456 needed
+- Software-defined analog OSD via STM32G4 OPAMP/DAC/DMA, no MAX7456 needed
 - SD (30x13/16) and HD (45x26/32) character modes
 - NTSC/PAL auto-detection
 
 ### MCU
-- **STM32G431KBU6** — ARM Cortex-M4F @ 170MHz, QFN-32
+- **STM32G431KBU6**: ARM Cortex-M4F @ 170MHz, QFN-32
 - MSP DisplayPort protocol (Betaflight native)
 - SmartAudio V2.1 fallback for legacy FCs
 
@@ -36,31 +38,20 @@ Open-source 5.8GHz analog video transmitter with software-defined OSD, based on 
 ```
 OpenVTX/
 ├── README.md
-├── CLAUDE.md
 ├── hardware/
+│   ├── DESIGN.md           ← Full design document (BOM, pinouts, RF chain, PCB specs)
 │   ├── OpenVTX.kicad_pro
-│   ├── *.kicad_sch         ← Hierarchical schematics
 │   ├── lib.kicad_sym       ← 14 symbols (project-local)
 │   ├── lib.pretty/         ← 14 footprints (project-local)
 │   ├── lib.3dshapes/       ← 3D models
-│   ├── production/         ← JLCPCB fabrication exports
 │   └── tools/              ← Python scripts
-├── reference/
-│   ├── 043_OpenOSD-X_REFERENCE.pdf
-│   ├── vpd_table.pdf
-│   ├── Connection.png
-│   ├── analog-vtx-market-analysis-2025-2026.md
-│   └── datasheets/         ← Component datasheets
-└── images/
+└── reference/
+    ├── 043_OpenOSD-X_REFERENCE.pdf
+    ├── vpd_table.pdf
+    ├── Connection.png
+    ├── analog-vtx-market-analysis-2025-2026.md
+    └── datasheets/         ← Component datasheets
 ```
-
-## Schematic Hierarchy
-
-- `OpenVTX.kicad_sch` — Top-level schematic
-- `mcu.kicad_sch` — STM32G431KBU6 and supporting circuitry
-- `rf.kicad_sch` — RTC6705 synthesizer + SKY85743-21 FEM + attenuator + output matching
-- `power.kicad_sch` — Buck converter, LDO, reverse polarity protection, TVS
-- `pads.kicad_sch` — User-facing solder pads, connectors, and test points
 
 ## User Interface
 
