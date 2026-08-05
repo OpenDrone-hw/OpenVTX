@@ -12,3 +12,7 @@ fp-info-cache
 # Python
 __pycache__/
 *.pyc
+
+# Agent instructions (local-only)
+CLAUDE.md
+.claude/
