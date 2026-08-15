@@ -242,7 +242,5 @@ KiCad 9 hierarchical, root `OpenVTX.kicad_sch` plus 4 sub-sheets (not created ye
 - `reference/043_OpenOSD-X_REFERENCE.pdf`: original schematic (RTC6705 + RTC6671)
 - `reference/vpd_table.pdf`: VPD calibration table format and example
 - `reference/Connection.png`: system block diagram
-- `reference/BreakoutboardBlockDiagram.pdf`: breakout board block diagram
 - `reference/datasheets/SKY85743-21_full_extraction.md`: complete pinout and specs
 - `reference/datasheets/*.pdf`: component datasheets (STM32G431, RTC6705, LMR51420, NTC)
-- `reference/analog-vtx-market-analysis-2025-2026.md`: market research
