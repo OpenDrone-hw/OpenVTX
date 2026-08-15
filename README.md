@@ -49,7 +49,6 @@ OpenVTX/
     ├── 043_OpenOSD-X_REFERENCE.pdf
     ├── vpd_table.pdf
     ├── Connection.png
-    ├── analog-vtx-market-analysis-2025-2026.md
     └── datasheets/         ← Component datasheets
 ```
 
