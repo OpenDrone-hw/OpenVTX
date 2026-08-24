@@ -1,7 +1,10 @@
 # Replacing the RTC6705 in a 5.8 GHz analog FPV VTX
 
-Research note, 2026-08-24. Tags: [P] primary source read directly, [I] inferred from primary data, [G] guess, unverified.
+Research note, 2026-08-24, second pass the same day after the MAX2871 datasheet was read in full and the market premise was re-checked.
+Tags: [P] primary source read directly, [I] inferred from primary data, [G] guess, unverified.
 Prices are LCSC list, USD, qty 1 to 9 unless stated. Stock as of 2026-08-24 via jlcsearch.tscircuit.com (JLCPCB in-stock mirror).
+MAX2871 numbers in section 8 are from the datasheet 19-6547 Rev 2, mirrored at
+https://datasheet.lcsc.com/datasheet/pdf/7df3658eebf9adf710f9045737cdc8ae.pdf (analog.com blocks non-browser fetches). [P]
 
 ## 1. The video
 
@@ -15,6 +18,16 @@ Product review, not a build video. No schematic, no chip names, no GitHub. Conte
 - Power levels shown 1/14/23/26/30/36 dBm (4 W, "authorized applications" unlock; public listing is 25/200/400 mW). 6 to 25 V in, 37x28x10 mm, 8.7 g, $69.99. SmartAudio and Tramp from one firmware. [P]
 - Flight test: 4 W with a Divimath 5.8 GHz bandpass filter on the goggle RX gave a very stable picture; without the filter, dropouts. [P]
 - What it proves for us: a non-RTC6705 analog VTX with an arbitrary-frequency synthesiser is shippable in 2026 at a hobby price. The architecture is undisclosed; a wideband fractional-N PLL+VCO synth with the video summed into the VCO tune line is the obvious reading of "any frequency 3.3 to 6 GHz" [I]. Nothing to copy from it.
+
+### 1.1 Wideband products from the big brands are not evidence of a new chip
+
+Foxeer ships Reaper Extreme V2 and V3 at 4.9 to 6.0 GHz, 80 channels, 2.5 to 3 W, and Reaper Infinity at 5 and 10 W; iFlight BLITZ covers a 4.9 GHz band alongside 5.8 GHz. [P, vendor product pages] It is tempting to read that fleet as proof that the industry replaced the RichWave part. It is not.
+
+OpenVTx already programs the RTC6705 from `MIN_FREQ 5000` to `MAX_FREQ 5999` (`src/src/rtc6705.h:21-22`, read 2026-08-24). [P] The chip's VCO runs at half the output, so OpenVTx is already claiming a 2.50 to 3.00 GHz VCO span against a 5725 to 5865 MHz datasheet number. Foxeer's 4.9 to 6.0 GHz needs 2.45 to 3.00 GHz, 50 MHz beyond what OpenVTx claims works. So the whole wideband fleet is explainable as an RTC6705 driven past its datasheet behind a broadband output filter, with the extra power coming from a bigger WLAN PA. Higher output power is a PA problem and every 5 GHz PA in section 6 is an off-the-shelf part. [I]
+
+Divimath is the only vendor making an explicit claim to the contrary. Everyone else is silent, and silence plus a stretched-but-plausible tuning range is weak evidence. No teardown or FCC internal photo was found for any Foxeer or iFlight VTX, so the chip identity of those products is unresolved. [P: searched, nothing found]
+
+Consequence for this project: do not assume a solved problem exists to be copied. The supply and price problem in section 3 stands whatever Foxeer is doing.
 
 ## 2. What the RTC6705 is
 
@@ -92,12 +105,12 @@ Consequence: keeping the RTC6705 footprint and consigning broker parts is an opt
 The RTC6705 is itself "direct VCO modulation through a slow loop": PFD 20 kHz, loop bandwidth in the hundreds of Hz [I from P]. Any synthesiser with an external loop filter and an accessible VCO tune node can do the same:
 
 - Sum the video (AC-coupled, attenuated to 100 to 300 mVpp depending on KVCO) into the Vtune node after the loop filter, through a series R or small C, so the charge pump filter does not load the video. [I]
-- Loop bandwidth 100 to 500 Hz. Frequencies above that ride on the open-loop VCO; below that the loop cancels them. Video content below ~100 Hz is only the average picture level, which the receiver clamps away anyway. PFD frequency can stay high (1 to 25 MHz); the loop filter just has large capacitors, and lock time becomes tens to hundreds of ms, which is within OpenVTx's 500 ms settle. [I]
+- Loop bandwidth around 500 Hz. Frequencies above that ride on the open-loop VCO; below that the loop cancels them, and the receiver's back-porch clamp restores what is lost once per line at 15.6 kHz. Section 8.2 works the number and the filter out. [I]
 - Deviation = KVCO x Vmod. KVCO values: MAX2871 ~100 MHz/V typical at 6 GHz (datasheet "VCO sensitivity") [P via jina extract]; LMX2572 VCO6 (5750 to 6400 MHz) 57 to 79 MHz/V, VCO5 (5200 to 5750) 61 to 82 MHz/V, datasheet table 135 [P]; ADF4355 ~15 MHz/V nominal (varies) [P via jina extract]; ADF4351 ~40 MHz/V at 2.2 to 4.4 GHz [P via jina extract], x2 after a doubler. For 8 MHz p-p: MAX2871 80 mVpp, LMX2572 100 to 140 mVpp, ADF4355 500 mVpp, ADF4351 100 mVpp at the VCO. All easy. [I]
 - KVCO varies by VCO sub-band and by tune voltage (2:1 on LMX2572 within one core [P]). Deviation therefore changes with channel unless firmware scales the video attenuator (a DAC-controlled divider or a digital pot) using a per-band table, or the design tolerates +-30 % deviation. RTC6705 has the same effect over its 300 MHz span and nobody compensates it. [I]
 - Vtune must stay inside the valid window (about 0.5 V to VCC-0.5 V on MAX2871 [P]) including the modulation swing: 0.1 to 0.3 Vpp is no problem. [I]
 - VCO auto-calibration (band select) happens at every frequency write; modulation must be muted during calibration or the wrong sub-band gets picked. Mute video with an analog switch or by holding the video buffer at mid-level for ~1 ms after each write, then unmute. [I]
-- Known failure report: ADI EngineerZone thread "Problem with excessive audio pre-emphasis when FM modulating the ADF4351": AC-coupling audio into TUNE gives a high-pass response below 1 kHz because the loop tracks it out; unanswered by ADI. https://ez.analog.com/rf/f/q-a/104488/problem-with-excessive-audio-pre-emphasis-when-fm-modulating-the-adf4351 [P] This is exactly the expected behaviour and why the loop bandwidth must be pushed to <100 Hz for video; the poster's problem was a loop bandwidth in the kHz range. [I]
+- Known failure report: ADI EngineerZone thread "Problem with excessive audio pre-emphasis when FM modulating the ADF4351": AC-coupling audio into TUNE gives a high-pass response below 1 kHz because the loop tracks it out; unanswered by ADI. https://ez.analog.com/rf/f/q-a/104488/problem-with-excessive-audio-pre-emphasis-when-fm-modulating-the-adf4351 [P] This is exactly the expected behaviour: the poster's loop bandwidth was in the kHz range. Video tolerates far more of it than audio does, because the receiver clamps per line rather than integrating, which is why 500 Hz works here and would not work for the ADF4351 poster's audio. [I]
 - Two-point modulation (LF part through the fractional modulator, HF part through the VCO) is what phones do; no listed part accepts a 6.5 MHz analog modulation word, and the DC to 100 Hz part of video does not matter, so it is not needed. LMX2572's "FSK direct digital modulation" is discrete-level/pulse-shaped for wireless mics, not analog video. [P for LMX2572 feature, I for conclusion]
 - Fractional-N sigma-delta spurs land at PFD-related offsets; with PFD >= 10 MHz they are outside the 21 MHz channel. Integer-N with a 1 MHz PFD (like the RTC6715 itself) gives 1 MHz steps, matches vtxtable resolution, no frac spurs, and OpenVTx's `freq/40` arithmetic just becomes `freq/1000`. Reference: 8 MHz crystal as on the RTC boards, or a 25/26 MHz TCXO. [I]
 - Audio subcarrier(s): generate 6.0/6.5 MHz FM by MCU timer + varactor or skip. Most FPV VTX omit audio. [I]
@@ -123,6 +136,29 @@ The RTC6705 is itself "direct VCO modulation through a slow loop": PFD 20 kHz, l
 Datasheets: MAX2871 https://www.analog.com/media/en/technical-documentation/data-sheets/MAX2871.pdf , ADF4351 https://www.analog.com/media/en/technical-documentation/data-sheets/ADF4351.pdf , ADF4355 https://www.analog.com/media/en/technical-documentation/data-sheets/ADF4355.pdf , LMX2572 https://www.ti.com/lit/ds/symlink/lmx2572.pdf , HMC833 https://www.analog.com/media/en/technical-documentation/data-sheets/hmc833.pdf
 
 Core area estimate for MAX2871 route [I]: 5x5 QFN + loop filter (3 caps, 2 R, 0402) + TCXO/crystal (2016 or 3225) + video summing network (3 parts) + output DC block and 3.3 V decoupling. About 9 x 9 mm excluding the MCU. LMX2572: 6x6 plus the same, about 10 x 10 mm.
+
+### 4.4 Domestic Chinese synthesisers (off-LCSC, added on the second pass)
+
+The LCSC-only sweep in 4.3 found no part under $9. Dropping that constraint changes the picture, because the Chinese domestic RF industry has integrated-VCO synthesisers that never reach LCSC and are sold through 世强 (Sekorm) and the vendors' own agents.
+
+| Part | Vendor | Spec | Package | Source |
+|---|---|---|---|---|
+| **X214** | 重庆西南集成电路设计 (Chongqing SWIC) | frac-N, integrated VCO 1.5 to 3 GHz, RF out 25 MHz to 6 GHz, PFD 100 MHz, ref in to 250 MHz, noise floor FOM -226 frac / -230 int dBc/Hz, flicker FOM -264, 3.3 or 5 V, 36 to 65 mA at 3.3 V, 120 to 240 mA at 5 V, SPI | QFN40 6x6x0.75, 0.5 mm | [P] sekorm.com/news/42316599.html and the SWIC PLL selection table on the same page |
+| CLF2574 | 核芯互联 | 10 MHz to 8.5 GHz, multi-core VCO, -231 dBc/Hz floor, 90 fs RMS jitter | not checked | [P via search snippet] eefocus |
+| unnamed PLL family | 润积电 | to 12 GHz, integer and fractional, BiCMOS | QFN-24 4x4 | [P via search snippet] zhihu |
+| XN406 | SWIC | frac-N, integrated VCO, RF out 25 to 3000 MHz | QFN40 6x6 | [P] sekorm.com/news/39802261.html |
+| XN405 | SWIC | frac-N, external VCO, RF in to 8 GHz, <=80 mA | not checked | [P] sekorm.com/news/52893268.html |
+
+X214 is the interesting one, for three reasons.
+
+1. Its topology is the RTC6705's: a sub-3 GHz VCO with an on-chip multiplier to reach 6 GHz [I, from "integrated VCO 1.5-3 GHz" plus "RF output to 6000 MHz" on the same feature list]. Doubling doubles the FM deviation, so video injection at the tune node needs half the swing a fundamental 6 GHz VCO needs.
+2. Its package is QFN40 6x6, byte for byte the RTC6705's package. Density parity is not an approximation, it is the same land pattern class.
+3. On the vendor's own Q&A page, dated 2023-06-19, an engineer asks (translated) "I am making an FPV drone transmission module, I need a wideband VCO for the 3.3 GHz band, 3.2 to 3.6 GHz, preferably an integrated PLL+VCO chip, any domestic recommendation?" and is answered with X214. [P] Divimath's second output is 3.3 GHz. That is circumstantial and nothing more, but it is the only lead found on what the non-RichWave products contain.
+
+Open before X214 can be designed in:
+- The datasheet is behind a Sekorm member login (HTTP 457 to non-members). No public price, no public phase noise plot, no confirmation that the charge pump and tune node are brought out for external loop filtering, which is the whole requirement.
+- SWIC is a CETC subsidiary. Divimath advertises NDAA compliance and builds in Thailand; a CETC part in the RF chain of an EU open-hardware VTX is a commercial and export decision, not only a technical one.
+- Small-quantity supply to a Belgian buyer is unproven.
 
 ## 5. Alternatives: doubler, and discrete VCO with a cheap PLL
 
@@ -190,48 +226,148 @@ A synth gives +5 dBm max. The RTC6705 gave +13 dBm, and existing VTX PA stages e
 Observations:
 - No JLCPCB basic part in this table; everything is extended (one-off feeder fee each) [P].
 - Every cheap 5 GHz PA is a WLAN part rated 5150 to 5850 or 5925 MHz. Band E top (5945 MHz) and Raceband 8 (5917 MHz) sit at or above the rated band; gain roll-off there is a few dB and unspecified [I]. Filters: pick the Walsin RFBPF1608060K98Q1C (5150 to 5950) or TDK DEA165538 (5150 to 5925) so the whole FPV table is inside the passband; the 4900 to 5840 parts clip band E high channels [I].
-- 25 mW EU build: MAX2871 (+5 dBm) + GVA-63+ or TRF37A73 (12 to 16 dB) = +17 to +20 dBm before filter and connector loss, no PA needed. 400 mW: add SE5004L or QPA9501 (both 32 dB, in stock) with Vcc/bias from the MCU PWM as OpenVTx already does [I].
-- Harmonics: a synth's square-ish output has strong 2nd/3rd harmonics (MAX2871 datasheet: 2nd harmonic -40 dBc at RFOUT [P via jina extract]); the RTC6705 spec was -60 dBc after its reference filter, so the low-pass or band-pass after the gain block is mandatory, and a second one after the PA for the 400 mW build [I].
+- 25 mW EU build: MAX2871 plus one gain block, no PA. The +5 dBm output figure is specified at 3000 MHz, so section 8.5 budgets +2 dBm at 5.8 GHz, which needs about 16 dB of gain to reach +14 dBm at the connector. 400 mW: add SE5004L or QPA9501 (both 32 dB, in stock) with Vcc/bias from the MCU PWM as OpenVTx already does [I].
+- Harmonics: a synth's square-ish output has strong 2nd/3rd harmonics (MAX2871 datasheet: -40 dBc second, -34 dBc third at the fundamental output [P]); the RTC6705 spec was -60 dBc after its reference filter, so the low-pass or band-pass after the gain block is mandatory, and a second one after the PA for the 400 mW build [I].
 
 ## 7. Candidate approaches compared
 
 | Approach | Core parts | LCSC / stock / price | Core area | Modulation | Firmware effort | Risk |
 |---|---|---|---|---|---|---|
 | A. Keep RTC6705(A), consign broker stock | RTC6705A, 8 MHz xtal | LCSC C913074 0 stock; brokers $5 to $12 | 6x6 QFN + 3 parts, 8x8 mm | proven | none (OpenVTx as is) | single source, price volatility, counterfeit risk from brokers, no future |
-| B. MAX2871 (or MAX2870) fundamental synth, video into TUNE | MAX2871, TCXO 19.2/26 MHz or 8 MHz xtal, loop filter, video buffer + attenuator + AC coupling, mute switch | C7458627, 752, $9.94 ($6.93 @100); DigiKey 8.5k | ~9x9 mm | KVCO ~100 MHz/V, 80 mVpp for 8 MHz p-p; loop BW <100 Hz; must mute during VCO cal | new driver: 6 x 32-bit registers, integer or frac-N, band select; SmartAudio/Tramp/MSP layers unchanged | KVCO per band changes deviation (+-30 %); frac spurs if frac-N; 200 mA at 3.3 V vs 95 mA; DigiKey price 2x LCSC |
+| B. MAX2871 (or MAX2870) fundamental synth, video into TUNE | MAX2871, 26 MHz TCXO (REF_IN minimum is 10 MHz, so no 8 MHz crystal), loop filter, unity-gain video buffer, Cinj, mute | C7458627, 752, $9.94 ($6.93 @100); DigiKey 8.5k | ~9x9 mm | KVCO 100 MHz/V, 39 pF into TUNE gives +-3.8 MHz from 1 Vpp; loop BW 505 Hz; manual VCO band select | new driver: 6 x 32-bit registers, integer-N, band table; SmartAudio/Tramp/MSP layers unchanged | KVCO per band changes deviation; VAS unusable at this loop bandwidth (8.4); 200 mA at 3.3 V vs 95 mA; DigiKey price 2x LCSC |
 | C. LMX2572 fundamental synth, same modulation | LMX2572RHAR + same periphery | C2665711, 2220, $10.21 ($7.75 @100); DigiKey 26 wk | ~10x10 mm | KVCO 57 to 82 MHz/V; Vtune pin needs 1.5 nF shunt which fights 6.5 MHz injection | new driver, ~110 registers but TI gives a TICS Pro register dump | bigger package, less community use, injection point awkward |
 | D. ADF4351 at 2.9 GHz + discrete x2 doubler | ADF4351 + BJT doubler + 5.8 GHz tank + BPF | C654681, 289, $14.79 | 5x5 + 3x6 doubler, ~10x12 mm | 4 MHz p-p at VCO, 40 MHz/V, 100 mVpp; doubler doubles PN | driver exists in many hobby projects | more expensive than B, more RF parts, fundamental leak, no reason to prefer |
 | E. Innotion YSGM VCO module + LMX2487 PLL | YSGM556006 + LMX2487 + loop filter + ref | C52043380 1982 $1.39; C2876370 272 $5.62 | 9x7 + 4x4, ~10x16 mm | ~150 MHz/V [I], 50 mVpp; supply pushing unknown | LMX2487 driver, simple | unknown phase noise and pushing, 5 V rail, exceeds area target, module vendor risk |
 | F. Fully discrete transistor+varactor VCO + PLL | BFP840-class + SMV varactor + LMX2487 | parts on LCSC | 8x8 + 4x4 | direct varactor drive | as E | not repeatable on JLCPCB FR-4 without tuning, EMC spurs; only for hobby builds |
 
-## 8. Recommended path
+## 8. The design
 
-Approach B, MAX2871, with the MAX2870 as pin- and software-compatible fallback [P] and LMX2572 as the second-source layout if MAX stock disappears (different footprint, so it would be a board variant, not a swap).
+Decisions taken 2026-08-24: FPV table only, 5645 to 5945 MHz, no 4.9 to 6.0 GHz wideband and no 3.3 GHz second band. MAX2871 for the prototype, with the MAX2870 as the pin- and software-compatible fallback [P] and the domestic parts of 4.4 pursued in parallel as a production cost-down. LMX2572 stays the second-source layout if Maxim stock disappears; different footprint, so a board variant rather than a swap.
+
+Every value in this section comes from the MAX2871 datasheet or is computed from it. The design targets the same job the RTC6705 does, not more.
+
+### 8.1 Frequency plan
+
+- REF_IN accepts 10 to 210 MHz [P], so the 8 MHz crystal on RTC6705 boards cannot be reused. Use a 26 MHz TCXO, R = 26, PFD = 1 MHz.
+- Integer-N, N = 5645 to 5945, one count per MHz. The vtxtable's integer-MHz entries map straight onto N, and OpenVTx's `freq_kHz/40` arithmetic collapses to `N = freq_MHz`. Set F01 = 1 and LDF = 1 for integer-N lock detect (5 locked cycles) [P].
+- Output on the fundamental, DIVA = 1. The VCO covers 3000 to 6000 MHz gap-free across 4 cores x 16 sub-bands [P], so the whole FPV table sits comfortably inside one region.
+- Integer-N means no fractional spurs anywhere. In-band phase noise = -230 + 10log10(1e6) + 20log10(5795) = -95 dBc/Hz [I from P], and that only applies below the loop bandwidth.
+- Reference spurs land at 1 MHz offset. The datasheet quotes -88 dBc with a 50 kHz loop [P]; this loop is a hundred times narrower, with an open-loop gain of -167 dB at 1 MHz against -21 dB for a 50 kHz loop [I, computed], so the ripple that produces those spurs is far better filtered here.
+- VCO phase noise at 6000 MHz is -101 dBc/Hz at 100 kHz and -128 at 1 MHz [P], against the RTC6705's -90 and -115 [P]. The synth route is 11 to 13 dB quieter than the part it replaces.
+
+### 8.2 Loop filter
+
+The loop bandwidth is the one number that decides whether this works. It must be low enough that the loop does not cancel the video, and high enough to lock inside OpenVTx's 500 ms budget.
+
+The usual reflex is to push the loop under 50 Hz so it cannot track the field rate. That is wrong here. Every analog FPV receiver clamps on the back porch, so DC restoration happens once per line at 15.6 kHz, not once per field. The loop only has to be far below the line rate, and whatever it removes below a few hundred Hz the clamp puts back. 500 Hz is the right target, and it keeps lock time in milliseconds.
+
+Third-order passive filter, RSET = 10 kohm and CP[3:0] = 0000 so ICP = 1.63/RSET x (1 + CP) = 163 uA [P, formula and RSET range 2.7 to 10 kohm], KVCO = 100 MHz/V [P], N = 5795:
+
+| Element | Value | Note |
+|---|---|---|
+| C1 (CP_OUT to GND) | 100 nF | X7R 0603 |
+| R2 | 1.3 kohm | split 330 ohm + 1.0 kohm if the built-in fast-lock (SW pin) is populated |
+| C2 | 680 nF | X7R 0603 |
+| R3 | 56 kohm | third pole, 6.0 kHz corner |
+| C3 (at TUNE) | 470 pF | C0G |
+
+Computed response: crossover 505 Hz, phase margin 45.8 degrees, loop gain +31.6 dB at 50 Hz, -7.7 dB at 1 kHz, -48.8 dB at 10 kHz, -167 dB at 1 MHz. [I, numeric check] Lock time from a full 300 MHz step is roughly 5 ms, forty times faster than needed, so the datasheet's fast-lock mode (CDM = 01, R2 split 1:3 onto the SW pin) is optional. Leave the two-resistor footprint and the SW pad, and leave SW open on the first build so both resistors stay in circuit.
+
+R3 at 56 kohm contributes 30 nV/rtHz, which after its own 6 kHz corner integrates to 297 Hz rms of FM, 79 dB below a +-3.8 MHz signal. [I, computed] Thermal noise in the loop filter is not a limit.
+
+### 8.3 Video injection
+
+Inject with a series capacitor into the TUNE node, not a series resistor. The capacitor and C3 form a divider that is flat from well below the loop bandwidth to far above 6.5 MHz, so the deviation does not vary across the video band, and the same part does the DC blocking.
+
+With C3 = 470 pF and a unity-gain buffer driving 1 Vpp of composite video:
+
+| Cinj | Divider | Deviation | Buffer load at 6.5 MHz | Buffer peak current |
+|---|---|---|---|---|
+| 33 pF | 1/15.2 | 6.6 MHz p-p | 794 ohm | 0.63 mA |
+| **39 pF** | **1/13.1** | **7.7 MHz p-p, +-3.8 MHz** | **680 ohm** | **0.74 mA** |
+| 47 pF | 1/11.0 | 9.1 MHz p-p | 573 ohm | 0.87 mA |
+
+39 pF lands on the community figure of about +-4 MHz with the CVBS source at its native 1 Vpp, so the buffer runs at unity gain and no attenuator is needed. Trim deviation by changing the buffer gain, never by changing Cinj: keeping the RF-side network fixed keeps the loop response fixed. A digital pot or a PWM-DAC in the buffer's feedback makes deviation a firmware parameter, which is the clean way to compensate the KVCO spread across the band.
+
+Any rail-to-rail op amp with a few tens of MHz of gain-bandwidth drives 680 ohm at 0.74 mA. 75 ohm termination on the CVBS input as usual.
+
+### 8.4 VCO band select: manual, not automatic
+
+This is the trap in the whole design and it will not show up until a prototype misbehaves on some channels.
+
+The MAX2871's VCO autoselect state machine runs at a fixed 50 kHz clock [P], so it evaluates a sub-band every 20 us. A 500 Hz loop moves the TUNE voltage with a time constant near 320 us. VAS therefore reads the tune voltage before it has settled and can select the wrong sub-band. The datasheet's own spur and lock specs are taken with a 50 kHz loop, a hundred times wider than this one.
+
+Use manual selection, which the datasheet supports directly: VAS_SHDN = 1 with the band in register 3 bits 31:26 [P]. The documented procedure builds the lookup table by running VAS once per frequency at power-up and reading back register 6 bits 8:3 [P], but that inherits the same settling problem here. Build the table with the on-chip Tune ADC instead:
+
+1. ADCM = 100 selects the TUNE pin, ADCS = 1 starts a conversion, CDIV = fPFD/100 kHz, read register 6 bits 22:16 after 100 us. V = 0.315 + ADC x 0.0165. [P]
+2. For a handful of anchor frequencies across 5645 to 5945, binary-search the sub-band that puts TUNE nearest mid-window. The valid window is 0.5 V to VCC [P], so aim for about 1.7 V.
+3. Interpolate between anchors for the rest of the table. The FPV span is 300 MHz out of a 3 GHz range, so only a few sub-bands are in play and the table is small.
+4. On every channel change, read the ADC once after lock and step a band if TUNE has drifted toward either rail. That also covers temperature, and the on-chip temperature sensor is available on the same ADC if a feed-forward correction is wanted later.
+
+Cost of this: zero parts, some firmware. The alternative, an analog switch that widens the loop during acquisition, is a fallback if the ADC approach proves fiddly.
+
+### 8.5 Output chain
+
+MAX2871 outputs are differential open-collector and need an RF choke or a 50 ohm pullup per side [P]. Single-ended off RFOUTA with a choke, RFOUTB tied to VCC_RF. APWR = 11 gives +5 dBm, but that is specified at 3000 MHz [P]; budget +2 dBm at 5.8 GHz until measured.
+
+Harmonics at the fundamental output are -40 dBc second and -34 dBc third [P]. The RTC6705 delivered -60 dBc after its reference filter [P], so a band-pass after the synth is mandatory, not a nicety. The Walsin RFBPF1608060K98Q1C (5150 to 5950 MHz, 0.6 dB, 40 dB rejection, $0.074, 13k stock) covers the entire FPV table with margin and does it in an 1608.
+
+- 25 mW EU build: 25 mW is +14 dBm at the connector. The synth's +2 dBm plus TRF37A73's 12 dB lands at +12.4 dBm after the band-pass and connector, which is 17 mW, and APWR only trims downward, so that combination cannot reach the target. Use a higher-gain block and trim down instead: QPL9547 (16.8 dB, P1dB +23 dBm specified at 5.1 GHz, DFN-8 2x2, $2.05, 2663 at JLCPCB) gives about +17 dBm, leaving 3 dB of APWR headroom. SKY65017-70LF (20 dB, flat to +-1.5 dB at 6 GHz, SOT-89, 5 V 120 mA, $2.16, 5345 stock) is the alternative. GVA-63+ is out: its P1dB is +11.8 dBm at 6 GHz, below the target. No PA on this build.
+- 400 mW to 1 W build: add QPA9501 after the first band-pass (32 dB at 5800 MHz, P1dB 29.5 dBm min, 33 dBm typ [P]), then a second band-pass or low-pass. Power is set by PA bias from the MCU PWM exactly as OpenVTx already does, so `target_set_power_dB` and its per-board table carry over unchanged.
+
+Pit mode: MTLD (register 4 bit 10) mutes the outputs whenever digital lock detect is low, and muted output power is -40 dBm [P]. That replaces OpenVTx's "PA off, wait 500 ms, PA on" dance with a hardware interlock. Keep the PA bias at zero on top of it, since -40 dBm through a 32 dB PA is still -8 dBm.
+
+### 8.6 Supply and isolation
+
+Open-loop frequency pushing is 0.8 MHz/V [P], and above the 500 Hz loop bandwidth the loop does not correct it. That sets a hard budget on the VCO rail:
+
+| Supply noise on VCC_VCO | Resulting deviation |
+|---|---|
+| 26 uVrms (RT9080-class LDO) | 21 Hz |
+| 1 mV | 800 Hz |
+| 10 mV (typical buck ripple) | 8 kHz |
+
+8 kHz of FM at the buck's switching frequency is a visible pattern on the picture. A dedicated quiet LDO for VCC_VCO with a ferrite from the digital rail is required, and the PA's switching current must not share it.
+
+Open-loop pulling into a 2:1 VSWR is 70 kHz [P], 1.8 % of the deviation, so antenna loading is harmless. PA-to-VCO leakage on a 1 W build is the real isolation problem and is what the RF can over the synth and gain block is for.
+
+### 8.7 Firmware contract
+
+`rtc6705.c` becomes `max2871.c`. Everything above it, SmartAudio, Tramp, MSP, the OSD, is untouched.
+
+- Six 32-bit registers R0 to R5, MSB first, the low 3 bits are the address, programmed R5 down to R0, R0 last because writing it triggers the frequency update [P].
+- Frequency set: write the band from the table into R3, then N into R0.
+- Replace the fixed 500 ms `PLL_SETTLE_TIME` with the digital lock detect on MUX, plus MTLD as the hardware backstop.
+- Power stays external: APWR for the fine trim, PA bias PWM for the coarse level.
+- Register 6 bits 31:28 read 0111 for MAX2871 and 0110 for MAX2870 [P], so one firmware image can detect which part is fitted.
+
+### 8.8 What the prototype has to prove
+
+Nothing in section 8 is hard except one thing that no public source documents: whether composite video summed into a synthesiser's tune node demodulates cleanly in an RX5808. Build a board that answers only that, and leave the PA off it.
+
+Synth, TCXO, loop filter, video buffer, Cinj, u.FL, and any MCU with SPI. Measure occupied bandwidth and harmonics on a tinySA Ultra, then put an RX5808 on it and look at the picture and the RSSI against a known RTC6705 VTX at the same deviation. If the picture is clean, everything left is layout and sourcing.
+
+### 8.9 Cost, honestly
+
+Against the historic $0.85 to $2.30 catalogue price for an RTC6705, this loses and always will. Against the price that actually exists in 2026, $5 to $12 from brokers with no datasheet guarantee and no second source, the core RF BOM is roughly $10.25 at qty 100: MAX2871 $6.93, 26 MHz TCXO about $0.50, QPL9547 gain block $2.05, Walsin band-pass $0.07, loop filter and injection passives about $0.10, buffer and mute about $0.60. That is $3 to $4 per board over a broker RTC6705, for real stock, a public datasheet, a pin-compatible second source, and 11 dB better phase noise. The domestic route of 4.4 is where that gap closes, if the parts turn out to be buyable.
 
 Block diagram:
 
 ```
- CVBS in 1Vpp  ->  75R term -> video buffer (op amp or emitter follower)
-                              -> R attenuator (~1/10) -> 100n AC coupling -> [analog switch, mute during cal]
-                                                                               |
- TCXO 26 MHz ------------------------------------------------> REF_IN          v (sum at TUNE node)
- MCU SPI (CLK/DATA/LE) + CE + MUX(lock detect) ----------------> MAX2871 ---- CP -> loop filter (BW <100 Hz) -> TUNE
-                                                                  RFOUTA+ (+5 dBm, 5645 to 5945 MHz)
-                                                                       |
-                                                                DC block -> GVA-63+ or TRF37A73 (12 to 16 dB) -> 5.8G BPF (Walsin RFBPF1608060K98Q1C)
-                                                                       |                                          |
-                                                                       v 25 mW EU build ends here (+15 dBm)        v
-                                                                                        SE5004L or QPA9501 PA (Vcc/bias from MCU PWM) -> 2nd BPF/LPF (DEA165538 or LFCN-5850+) -> u.FL/MMCX
- Audio (optional): MCU timer 6.0/6.5 MHz FM via small varactor, summed into the same TUNE node at -25 dBc.
+ CVBS in 1 Vpp -> 75R term -> unity-gain buffer (mute to mid-rail during band search)
+                                         |
+                                     Cinj 39 pF
+                                         |
+ 26 MHz TCXO ---------------> REF_IN     v
+ MCU SPI (CLK/DATA/LE) + CE -> MAX2871 (R=26, PFD 1 MHz, integer-N, N = 5645..5945)
+ MUX (lock detect + reg readback) <-|  CP_OUT -> C1 100n, R2 1k3 + C2 680n, R3 56k -> TUNE (C3 470p)
+                                       RFOUTA (choke to VCC_RF, APWR 11)
+                                            |
+                                       DC block -> QPL9547 +16.8 dB -> Walsin RFBPF1608060K98Q1C
+                                            |                             |
+                             25 mW EU build ends here (+14 dBm)           v
+                                                       QPA9501 +32 dB (bias from MCU PWM) -> 2nd BPF -> u.FL/MMCX
 ```
-
-Design notes:
-- Firmware: replace `rtc6705.c` with a `max2871.c` that writes registers R5..R0 (32-bit, MSB first, 3 control bits) on frequency change, integer-N with a 1 MHz PFD from the 26 MHz TCXO (R = 26, N = 5645 to 5945) so no fractional spurs and 1 MHz vtxtable steps map 1:1; or frac-N with PFD 26 MHz if 40 kHz steps are wanted. Keep the OpenVTx PA-off/settle/PA-on sequence; use MUXOUT lock detect instead of the fixed 500 ms wait. [I]
-- Loop filter: 3rd order, BW 50 to 100 Hz, phase margin 50 deg, Icp 0.32 mA minimum: capacitors in the uF range, X7R 0805 or larger, low leakage; lock time ~50 ms [G, needs ADIsimPLL run].
-- Video injection at TUNE through 1 to 4.7 kohm from a buffer whose output impedance is <100 ohm, so the loop filter's last shunt capacitor (small, pF class on MAX2871, no mandated value) does not roll off 6.5 MHz. Deviation trim: a digital pot or a PWM-DAC controlled VCA is the clean way; a resistor pick on the first prototype is fine. [I]
-- Mute video during band select (`VAS` enable, ~ms) by opening the analog switch; unmute after lock detect. [I]
-- Supply: MAX2871 wants clean 3.3 V, 200 mA worst case; separate LDO for the VCO rail, ferrite from the digital rail. Supply pushing turns 3.3 V ripple into FM: a 1 mV ripple at 20 MHz/V pushing [G] is 20 kHz deviation, visible as a fine horizontal pattern, so the LDO must be quiet in the 100 Hz to 10 MHz range (RT9080-class 26 uVrms is adequate [I]).
-- First prototype validation: RX5808 module + scope on its video out and RSSI, plus a tinySA Ultra or similar to 6 GHz for occupied bandwidth and harmonics. Compare against a known RTC6705 VTX at the same deviation setting.
 
 ## 9. Regulatory note
 
@@ -239,13 +375,20 @@ In the EU the 5725 to 5875 MHz non-specific SRD band (ERC/REC 70-03 Annex 1, EN 
 
 ## 10. Unverified
 
-- MAX2871 KVCO (~100 MHz/V "VCO sensitivity"), -40 dBc 2nd harmonic and phase noise are from a jina text extract of the datasheet, not read from the tables; the per-band KVCO spread is not confirmed.
-- FPV video deviation (~8 MHz p-p, +-4 MHz) and receiver IF bandwidth (~20 to 27 MHz): community figures, no primary source found; RTC6705 datasheet does not state deviation, RTC6715 datasheet gives 480 MHz IF and a +-2.5 MHz test deviation only.
+Resolved on the second pass, no longer open: MAX2871 KVCO (100 MHz/V), harmonics (-40 / -34 dBc), phase noise, charge-pump formula and RSET range, PFD and REF_IN limits, tune voltage window, frequency pushing and pulling, VAS clock, manual band select, Tune ADC transfer function and the register map are all read directly from the datasheet now.
+
+Still open:
+
+- **The central one.** No source anywhere describes composite video summed into a MAX2871 or ADF4351 tune node. The ADF4351 audio thread confirms the loop's high-pass behaviour and nothing else. The 500 Hz loop bandwidth, the clamp argument in 8.2 and the deviation figure are engineering expectations. Section 8.8 exists to settle them.
+- FPV video deviation (about +-4 MHz) and receiver IF bandwidth (20 to 27 MHz) are community figures. The RTC6705 datasheet does not state deviation; the RTC6715 datasheet gives 480 MHz IF and a +-2.5 MHz test deviation only.
+- The loop filter of 8.2 is computed and numerically checked, not simulated in EE-Sim and not built. Lock time of about 5 ms is an estimate.
+- VAS mis-selecting sub-bands at a 500 Hz loop bandwidth is reasoned from the fixed 50 kHz state machine clock against the loop time constant, not observed. If VAS turns out to work, 8.4 gets simpler.
+- MAX2871 output power is specified at 3000 MHz. The +2 dBm assumed at 5.8 GHz is a guess pending measurement.
+- X214: datasheet is behind a Sekorm member login and was not read. The on-chip multiplier, whether the charge pump and tune node are brought out for an external loop filter, phase noise, price, and small-quantity availability outside China are all unconfirmed. The link between X214 and any shipping FPV product is circumstantial.
+- CLF2574 and the 润积电 parts come from search snippets, not datasheets.
 - That the RTC6705 VCO runs at half frequency with a doubler: inferred from FRF = 2*(N*64+A)*Fpfd and the 2G/5G register names, not stated.
-- No source describes anyone running composite video into a MAX2871 or ADF4351 tune node; the ADF4351 audio thread confirms the loop-tracking high-pass effect but nothing else. Loop bandwidth, mute-during-cal and deviation-vs-band behaviour are engineering expectations, not measurements.
-- Divimath's actual architecture is undisclosed.
-- Innotion YSGM VCO phase noise, pushing and KVCO: not on the LCSC page.
-- 5 GHz WLAN PA and ceramic filter behaviour at 5850 to 5945 MHz: outside their rated band, no data.
-- Whether Rush, TBS, Happymodel, Walksnail analog VTX use RTC6705: assumed because no alternative chip exists, not read from teardowns.
-- LCSC stock and prices are jlcsearch mirror values on 2026-08-24; DigiKey prices are from the subagent's fetches the same day.
-- EU SRD 5725 to 5875 MHz 25 mW e.i.r.p.: confirmed only through search snippets of CEPT/ECO pages, not the current 70-03 Annex 1 text.
+- Divimath's actual architecture is undisclosed. Whether Foxeer, iFlight, Rush, TBS, Happymodel or Walksnail analog VTX use the RTC6705 is unresolved; section 1.1 argues they can, not that they do. No teardown or FCC internal photo was found for any of them.
+- Innotion YSGM VCO phase noise, pushing and KVCO are not on the LCSC page.
+- 5 GHz WLAN PA and ceramic filter behaviour above 5850 MHz is outside their rated band, no data. Band E channel 8 at 5945 MHz and Raceband 8 at 5917 MHz are both affected.
+- LCSC stock and prices are jlcsearch mirror values on 2026-08-24; DigiKey prices are from the same day.
+- EU SRD 5725 to 5875 MHz at 25 mW e.i.r.p. is confirmed only through search snippets of CEPT and ECO pages, not the current ERC/REC 70-03 Annex 1 text.
