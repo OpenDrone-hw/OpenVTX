@@ -422,5 +422,7 @@
     "subpart_id_separator": 0
   },
   "sheets": [],
-  "text_variables": {}
+  "text_variables": {
+    "OPENDRONE_LIB": "${KIPRJMOD}/KiCad-Library"
+  }
 }
