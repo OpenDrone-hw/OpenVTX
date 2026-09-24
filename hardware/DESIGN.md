@@ -193,7 +193,7 @@ Detector: logarithmic, ~23mV/dB, 0.33V (+5dBm) to 0.93V (+28dBm)
 
 ## Planned Schematic Structure
 
-KiCad 9 hierarchical, root `OpenVTX.kicad_sch` plus 4 sub-sheets (not created yet):
+KiCad 10 hierarchical, root `OpenVTX.kicad_sch` plus 4 sub-sheets (not created yet):
 
 - `mcu.kicad_sch`: STM32G431KBU6, crystal, SWD, UART, SPI, ADC, DAC, OPAMP
 - `rf.kicad_sch`: RTC6705, attenuator, SKY85743-21, IPEX, loop filter
