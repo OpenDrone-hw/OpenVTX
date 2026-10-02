@@ -1,8 +1,10 @@
 # OpenVTX
 
+[![Status](https://img.shields.io/endpoint?url=https://opendrone.be/api/status/OpenVTX.json)](https://github.com/OpenDrone-hw/.github/blob/main/CONTRIBUTING.md#the-life-of-a-project)
+
 Open-source 5.8GHz analog video transmitter with software-defined OSD, based on [OpenOSD-X](https://github.com/OpenOSD-X) firmware.
 
-Early stage: parts are selected and project-local libraries are in place. Schematic and layout are not started yet. The full design reference lives in [hardware/DESIGN.md](hardware/DESIGN.md).
+Early stage: parts are selected and project-local libraries are in place. Schematic and layout are not started yet. The full design reference lives in [hardware/DESIGN.md](hardware/DESIGN.md); third-party datasheets and the OpenOSD-X reference schematic are linked from its Reference Documents section.
 
 ## Planned Features
 
@@ -45,11 +47,9 @@ OpenVTX/
 │   ├── lib.pretty/         ← 14 footprints (project-local)
 │   ├── lib.3dshapes/       ← 3D models
 │   └── tools/              ← Python scripts
-└── reference/
-    ├── 043_OpenOSD-X_REFERENCE.pdf
-    ├── vpd_table.pdf
-    ├── Connection.png
-    └── datasheets/         ← Component datasheets
+├── reference/
+│   └── datasheets/         ← SKY85743-21 pinout extraction
+└── research/               ← RTC6705 replacement study
 ```
 
 ## User Interface

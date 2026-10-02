@@ -19,8 +19,8 @@ files carry them.
 | Local library | `hardware/lib.kicad_sym` (14 symbols), `hardware/lib.pretty/` (14 footprints), `hardware/lib.3dshapes/`, nickname `lib` |
 | Shared library | `hardware/KiCad-Library/`, submodule of [OpenDrone-hw/KiCad-Library](https://github.com/OpenDrone-hw/KiCad-Library), nickname `OpenDrone`; 3D models and exact component datasheets resolve through the project text variable `OPENDRONE_LIB` |
 | Board tools | `hardware/tools/add_mpn_fields.py`: fills MPN and Manufacturer symbol properties from LCSC numbers through the jlcsearch API with kicad-skip; dry run by default, `--write` to change files |
-| Reference | `reference/`: OpenOSD-X reference schematic PDF, VPD table, connection drawing, component datasheets |
-| Research | `research/`: sourcing notes, reference material not decisions |
+| Reference | `hardware/DESIGN.md` "Reference Documents": links to the OpenOSD-X reference schematic, VPD table, block diagram and component datasheets; `reference/datasheets/SKY85743-21_full_extraction.md` |
+| Research | `research/`: technical notes, reference material not decisions |
 | License | CERN-OHL-S-2.0 |
 
 ## Environment
@@ -68,4 +68,4 @@ Python named there.
 - Add a part: place it from the `OpenDrone` library if `hardware/KiCad-Library/PARTS-USED.md` lists it; otherwise import it into `lib` with `$KPY <hardware-tooling>/hardware/kicad/import_part.py --repo hardware` (read `--help` first), KiCad closed.
 - Fill supplier fields once a schematic exists: `python3 hardware/tools/add_mpn_fields.py` to preview, `--write` to apply, KiCad closed.
 - Update the shared library: `git submodule update --remote hardware/KiCad-Library`, commit as its own reviewed change; run DRC once a board exists.
-- Answer an RF or OSD question: read `hardware/DESIGN.md` and the PDFs in `reference/`; the RTC6705 sourcing question is in `research/rtc6705-replacement.md`.
+- Answer an RF or OSD question: read `hardware/DESIGN.md` and the documents its Reference Documents section links; the RTC6705 sourcing question is in `research/rtc6705-replacement.md`.

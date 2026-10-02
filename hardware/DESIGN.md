@@ -11,7 +11,7 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 | FEM | SKY85743-21 | C5348950 | LGA-24 3x5mm | 5V supply! Max +10dBm input! |
 | Buck 5V | LMR51420YDDCR | C5383002 | SOT-23-6 | 1.1MHz, PFM. |
 | LDO 3.3V | TLV75733PDRVR | C2868428 | WSON-6 2x2mm | 1A, 6.5uVrms noise |
-| Rev Pol | AO3401A | C15127 | SOT-23 2.9x1.6mm | -30V, BASIC part, $0.05 |
+| Rev Pol | AO3401A | C15127 | SOT-23 2.9x1.6mm | -30V, BASIC part |
 | NTC | NCP15XH103F03RC | C77131 | 0402 | 10kOhm, B=3380K |
 | Crystal | 8MHz 3225 | C367183 | SMD 3225 | For RTC6705 |
 | ESD (x2) | PESD5V0S1BL | C2912556 | DFN1006-2 (0402) | One per UART line |
@@ -48,7 +48,7 @@ Open-source 5.8GHz analog VTX with software-defined OSD. 20x20mm, 4-layer, 2S-6S
 
 ## Consign Parts (1, source externally and supply to JLCPCB)
 
-- **RTC6705**: 0 stock LCSC (checked 2026-08-05). No alternative. Source AliExpress/Taobao.
+- **RTC6705**: listed on LCSC as C913074 with 0 stock (checked 2026-10-02). No alternative part exists; see [research/rtc6705-replacement.md](../research/rtc6705-replacement.md).
 
 STM32G431KBU6 (C529358) and LMR51420YDDCR (C5383002) are in stock at LCSC and in the
 JLCPCB assembly library (checked 2026-08-05): order via JLCPCB assembly, no consign needed.
@@ -239,8 +239,17 @@ KiCad 10 hierarchical, root `OpenVTX.kicad_sch` plus 4 sub-sheets (not created y
 
 ## Reference Documents
 
-- `reference/043_OpenOSD-X_REFERENCE.pdf`: original schematic (RTC6705 + RTC6671)
-- `reference/vpd_table.pdf`: VPD calibration table format and example
-- `reference/Connection.png`: system block diagram
-- `reference/datasheets/SKY85743-21_full_extraction.md`: complete pinout and specs
-- `reference/datasheets/*.pdf`: component datasheets (STM32G431, RTC6705, LMR51420, NTC)
+Third-party documents are linked at their source, not copied into this repository.
+
+| Document | Source |
+|---|---|
+| OpenOSD-X reference schematic (RTC6705 + RTC6671) | [OpenOSD-X `doc/043_OpenOSD-X_REFERENCE.pdf`](https://github.com/OpenOSD-X/OpenOSD-X/blob/main/doc/043_OpenOSD-X_REFERENCE.pdf) |
+| VPD calibration table format and example | [OpenOSD-X `doc/vpd_table.pdf`](https://github.com/OpenOSD-X/OpenOSD-X/blob/main/doc/vpd_table.pdf) |
+| System block diagram | [OpenOSD-X `doc/Connection.png`](https://github.com/OpenOSD-X/OpenOSD-X/blob/main/doc/Connection.png) |
+| STM32G431xB datasheet | [STMicroelectronics](https://www.st.com/resource/en/datasheet/stm32g431kb.pdf) |
+| LMR51420 datasheet | [Texas Instruments](https://www.ti.com/lit/ds/symlink/lmr51420.pdf) |
+| SKY85743-21 | [Skyworks product page](https://www.skyworksinc.com/Products/Front-end-Modules/SKY85743-21) |
+| NCP15XH103F03RC | [Murata product page](https://www.murata.com/en-global/products/productdetail?partno=NCP15XH103F03RC) |
+| RTC6705 datasheet (RichWave publishes none; LCSC copy) | [LCSC C913074](https://www.lcsc.com/datasheet/C913074.pdf) |
+
+`reference/datasheets/SKY85743-21_full_extraction.md` holds the SKY85743-21 pinout and specs extracted for this design.
