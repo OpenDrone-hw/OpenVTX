@@ -2,7 +2,7 @@
 
 Research note, 2026-08-24, second pass the same day after the MAX2871 datasheet was read in full and the market premise was re-checked.
 Tags: [P] primary source read directly, [I] inferred from primary data, [G] guess, unverified.
-Prices are LCSC list, USD, qty 1 to 9 unless stated. Stock as of 2026-08-24 via jlcsearch.tscircuit.com (JLCPCB in-stock mirror).
+Stock as of 2026-08-24 via jlcsearch.tscircuit.com (JLCPCB in-stock mirror).
 MAX2871 numbers in section 8 are from the datasheet 19-6547 Rev 2, mirrored at
 https://datasheet.lcsc.com/datasheet/pdf/7df3658eebf9adf710f9045737cdc8ae.pdf (analog.com blocks non-browser fetches). [P]
 
@@ -12,12 +12,12 @@ https://www.youtube.com/watch?v=r6h3y7gFdR8, Joshua Bardwell, "Analog vTX have a
 
 Product review, not a build video. No schematic, no chip names, no GitHub. Content:
 
-- Every 5.8 GHz analog VTX uses the same RichWave chip; military drone demand pushed its price up roughly 5x, so the $15 VTX is gone. [P]
+- Every 5.8 GHz analog VTX uses the same RichWave chip; military drone demand has made it scarce. [P]
 - Divimath (HDZero sister company, Carl Zhao; NDAA-compliant, built in Thailand) ships a "Dual-Band Analog VTX" that does not use it. Product page: "does not use conventional Richwave RTC670x chipset". [P] https://www.divimath.com/products/divimath-dual-band-analog-vtx
 - Because it is not tied to the RichWave part it is frequency agile: any 4-digit MHz entry, Bardwell's vtxtable ran 4900 to 6030 MHz plus 3.3 GHz. Two MMCX outputs, one 5.8 GHz, one 3.3 GHz. [P]
-- Power levels shown 1/14/23/26/30/36 dBm (4 W, "authorized applications" unlock; public listing is 25/200/400 mW). 6 to 25 V in, 37x28x10 mm, 8.7 g, $69.99. SmartAudio and Tramp from one firmware. [P]
+- Power levels shown 1/14/23/26/30/36 dBm (4 W, "authorized applications" unlock; public listing is 25/200/400 mW). 6 to 25 V in, 37x28x10 mm, 8.7 g. SmartAudio and Tramp from one firmware. [P]
 - Flight test: 4 W with a Divimath 5.8 GHz bandpass filter on the goggle RX gave a very stable picture; without the filter, dropouts. [P]
-- What it proves for us: a non-RTC6705 analog VTX with an arbitrary-frequency synthesiser is shippable in 2026 at a hobby price. The architecture is undisclosed; a wideband fractional-N PLL+VCO synth with the video summed into the VCO tune line is the obvious reading of "any frequency 3.3 to 6 GHz" [I]. Nothing to copy from it.
+- What it proves for us: a non-RTC6705 analog VTX with an arbitrary-frequency synthesiser is shippable in 2026. The architecture is undisclosed; a wideband fractional-N PLL+VCO synth with the video summed into the VCO tune line is the obvious reading of "any frequency 3.3 to 6 GHz" [I]. Nothing to copy from it.
 
 ### 1.1 Wideband products from the big brands are not evidence of a new chip
 
@@ -27,7 +27,7 @@ OpenVTx already programs the RTC6705 from `MIN_FREQ 5000` to `MAX_FREQ 5999` (`s
 
 Divimath is the only vendor making an explicit claim to the contrary. Everyone else is silent, and silence plus a stretched-but-plausible tuning range is weak evidence. No teardown or FCC internal photo was found for any Foxeer or iFlight VTX, so the chip identity of those products is unresolved. [P: searched, nothing found]
 
-Consequence for this project: do not assume a solved problem exists to be copied. The supply and price problem in section 3 stands whatever Foxeer is doing.
+Consequence for this project: do not assume a solved problem exists to be copied. The supply problem in section 3 stands whatever Foxeer is doing.
 
 ## 2. What the RTC6705 is
 
@@ -78,18 +78,15 @@ Richwave "Wireless Video/Audio" product list (richwave.com.tw blocks bots; mirro
 
 Availability 2026-08-24 [P]:
 
-| Source | Part | Stock | Price |
-|---|---|---|---|
-| LCSC C913074 (QFN-40-EP 6x6) https://www.lcsc.com/product-detail/C913074.html | RTC6705 | 0, "notify me" | reference $2.32 @1, $0.85 @1k |
-| JLCPCB parts | C913074 | 0, pre-order | $2.44 est. |
-| jlcsearch in-stock index | RTC6705, RTC67* | not present | |
-| utsource | RTC6705 | in stock (claim) | $23 @1 |
-| Win-Source, DigiPart aggregate | RTC6705A | 3k to 30k (broker claims) | $6.6 to $11.7 |
-| AliExpress / Taobao / 1688 | RTC6705A AV05BMP | yes | $3.7 to $7.6 @1 |
+| Source | Part | Stock |
+|---|---|---|
+| LCSC C913074 (QFN-40-EP 6x6) https://www.lcsc.com/product-detail/C913074.html | RTC6705 | 0, "notify me" |
+| JLCPCB parts | C913074 | 0, pre-order |
+| jlcsearch in-stock index | RTC6705, RTC67* | not present |
 
-Real 2026 price is $5 to $12 against a $0.85 to $2.3 reference: 3x to 10x [I]. Lifecycle "Active" per Avaq aggregator, Richwave still lists it [P]. Single source, fabless Taiwan, no second source [I].
+No authorised distributor stock was found. Lifecycle "Active" per Avaq aggregator, Richwave still lists it [P]. Single source, fabless Taiwan, no second source [I].
 
-Consequence: keeping the RTC6705 footprint and consigning broker parts is an option (~$6 to $8 per board at small volume [I]), but the question asked is how to build without it, so the rest is about a discrete synthesiser.
+Consequence: the question asked is how to build without it, so the rest is about a discrete synthesiser.
 
 ## 4. Discrete build: PLL + integrated VCO, video summed into the tune line
 
@@ -115,23 +112,23 @@ The RTC6705 is itself "direct VCO modulation through a slow loop": PFD 20 kHz, l
 - Fractional-N sigma-delta spurs land at PFD-related offsets; with PFD >= 10 MHz they are outside the 21 MHz channel. Integer-N with a 1 MHz PFD (like the RTC6715 itself) gives 1 MHz steps, matches vtxtable resolution, no frac spurs, and OpenVTx's `freq/40` arithmetic just becomes `freq/1000`. Reference: 8 MHz crystal as on the RTC boards, or a 25/26 MHz TCXO. [I]
 - Audio subcarrier(s): generate 6.0/6.5 MHz FM by MCU timer + varactor or skip. Most FPV VTX omit audio. [I]
 
-### 4.3 Candidate synthesiser ICs (jlcsearch 2026-08-24, LCSC list prices qty 1 to 9)
+### 4.3 Candidate synthesiser ICs (jlcsearch 2026-08-24)
 
-| Part | Package | VCO fundamental | Vtune access | Out | LCSC | Stock | Price $ | DigiKey $ @1 | Verdict |
-|---|---|---|---|---|---|---|---|---|---|
-| MAX2871ETJ+T | TQFN-32 5x5 | 3 to 6 GHz, output 23.5 MHz to 6 GHz | CP and TUNE pins, external loop filter [P] | up to +5 dBm [P] | C7458627 | 752 | 9.94 (6.93 @100) | 18.03 | First choice. Covers 5645 to 5945 at fundamental. KVCO ~100 MHz/V. -101 dBc/Hz at 100 kHz open-loop VCO. 3.3 V, up to 200 mA with both outputs. [P] |
-| MAX2870ETJ+T | TQFN-32 5x5 | same, older, worse PN [I] | same | +5 dBm | C7454677 | 222 | 11.16 | 19.79 | Second source for the same footprint: MAX2871 datasheet states it is "fully pin and software-compatible with the MAX2870" [P] |
-| LMX2572RHAR | VQFN-40 6x6 | 3.2 to 6.4 GHz [P] | CPout and Vtune pins, external LF, needs >=1.5 nF at Vtune [P] | +4.5 dBm at 6.4 GHz [P] | C2665711 | 2220 | 10.21 (7.75 @100) | 32.87 (reel only), 26 wk lead | Viable alternate, best LCSC stock. Six VCO cores, KVCO 57 to 82 MHz/V in the FPV band [P]. The mandatory 1.5 nF at Vtune limits how you inject 6.5 MHz video (drive through ~10 ohm or inject before the cap) [I]. Larger package. |
-| LMX2582RHAR | VQFN-40 6x6 | max 5.5 GHz [P] | | | C2864397 | 90 | 12.10 | 19.70 | Out: does not reach 5.6 GHz. |
-| ADF4355BCPZ | LFCSP-32 5x5 | 3.4 to 6.8 GHz [P] | yes | -4 to +5 dBm | C578985 | 5 | 29.59 | 78.24 | Out on price and stock; needs 5 V VCO rail. KVCO ~15 MHz/V. |
-| ADF4356 / ADF4371 | 5x5 / 7x7 | 6.8 / 32 GHz | | | C578986 / C654704 | 1 / 10 | 61 / 536 | | Out. |
-| HMC833LP6GE | QFN-40 6x6 | 1.5 to 3 GHz VCO + internal doubler to 6 GHz [I] | yes | | C514408 | 174 | 15.82 | no stock | Viable but pricier, bigger; doubled VCO. |
-| ADF4351BCPZ(-RL7) | LFCSP-32 5x5 | 2.2 to 4.4 GHz [P] | CP + VTUNE, external LF | -4 to +5 dBm | C654681 / C71362 | 289 / 191 | 14.79 / 14.26 | 25.16 (12.33 @100) | Needs external x2 doubler (see 5). |
-| ADF4350BCPZ-RL7 | LFCSP-32 | same as 4351, worse PN | | | C98705 | 323 | 11.92 | | Cheapest ADI, doubler needed. |
-| LMX2487SQ | WQFN-24 4x4 | none, external VCO, PLL to 6 GHz | n/a | | C2876370 | 272 | 5.62 | | For the discrete-VCO route (see 5). |
-| ADF4113 | TSSOP-16 / LFCSP-20 | none, external VCO, PLL to 4 GHz | n/a | | C654605 / C208137 | 20 / 15 | 8.45 to 9.49 | | Integer-N, 4 GHz max: only with a 2.9 GHz VCO + doubler. Low stock. |
-| STW81200T | VFQFPN-36 6x6 | to 6 GHz | | | C1527287 | 9 | 16.67 | | Low stock. |
-| Chinese clones | | | | | none found under ADF4351/MAX2871/PLL/synthesizer/频率合成器/锁相环/VCO/5.8GHz on jlcsearch [P] | | | | The only LCSC-native RF synth-class parts above 1 GHz are ADI/TI/Maxim/HMC/Mini-Circuits. |
+| Part | Package | VCO fundamental | Vtune access | Out | LCSC | Stock | Verdict |
+|---|---|---|---|---|---|---|---|
+| MAX2871ETJ+T | TQFN-32 5x5 | 3 to 6 GHz, output 23.5 MHz to 6 GHz | CP and TUNE pins, external loop filter [P] | up to +5 dBm [P] | C7458627 | 752 | First choice. Covers 5645 to 5945 at fundamental. KVCO ~100 MHz/V. -101 dBc/Hz at 100 kHz open-loop VCO. 3.3 V, up to 200 mA with both outputs. [P] |
+| MAX2870ETJ+T | TQFN-32 5x5 | same, older, worse PN [I] | same | +5 dBm | C7454677 | 222 | Second source for the same footprint: MAX2871 datasheet states it is "fully pin and software-compatible with the MAX2870" [P] |
+| LMX2572RHAR | VQFN-40 6x6 | 3.2 to 6.4 GHz [P] | CPout and Vtune pins, external LF, needs >=1.5 nF at Vtune [P] | +4.5 dBm at 6.4 GHz [P] | C2665711 | 2220 | Viable alternate, best LCSC stock. Six VCO cores, KVCO 57 to 82 MHz/V in the FPV band [P]. The mandatory 1.5 nF at Vtune limits how you inject 6.5 MHz video (drive through ~10 ohm or inject before the cap) [I]. Larger package. |
+| LMX2582RHAR | VQFN-40 6x6 | max 5.5 GHz [P] | | | C2864397 | 90 | Out: does not reach 5.6 GHz. |
+| ADF4355BCPZ | LFCSP-32 5x5 | 3.4 to 6.8 GHz [P] | yes | -4 to +5 dBm | C578985 | 5 | Out on stock; needs 5 V VCO rail. KVCO ~15 MHz/V. |
+| ADF4356 / ADF4371 | 5x5 / 7x7 | 6.8 / 32 GHz | | | C578986 / C654704 | 1 / 10 | Out. |
+| HMC833LP6GE | QFN-40 6x6 | 1.5 to 3 GHz VCO + internal doubler to 6 GHz [I] | yes | | C514408 | 174 | Viable but bigger; doubled VCO. |
+| ADF4351BCPZ(-RL7) | LFCSP-32 5x5 | 2.2 to 4.4 GHz [P] | CP + VTUNE, external LF | -4 to +5 dBm | C654681 / C71362 | 289 / 191 | Needs external x2 doubler (see 5). |
+| ADF4350BCPZ-RL7 | LFCSP-32 | same as 4351, worse PN | | | C98705 | 323 | Doubler needed. |
+| LMX2487SQ | WQFN-24 4x4 | none, external VCO, PLL to 6 GHz | n/a | | C2876370 | 272 | For the discrete-VCO route (see 5). |
+| ADF4113 | TSSOP-16 / LFCSP-20 | none, external VCO, PLL to 4 GHz | n/a | | C654605 / C208137 | 20 / 15 | Integer-N, 4 GHz max: only with a 2.9 GHz VCO + doubler. Low stock. |
+| STW81200T | VFQFPN-36 6x6 | to 6 GHz | | | C1527287 | 9 | Low stock. |
+| Chinese clones | | | | | none found under ADF4351/MAX2871/PLL/synthesizer/频率合成器/锁相环/VCO/5.8GHz on jlcsearch [P] | | The only LCSC-native RF synth-class parts above 1 GHz are ADI/TI/Maxim/HMC/Mini-Circuits. |
 
 Datasheets: MAX2871 https://www.analog.com/media/en/technical-documentation/data-sheets/MAX2871.pdf , ADF4351 https://www.analog.com/media/en/technical-documentation/data-sheets/ADF4351.pdf , ADF4355 https://www.analog.com/media/en/technical-documentation/data-sheets/ADF4355.pdf , LMX2572 https://www.ti.com/lit/ds/symlink/lmx2572.pdf , HMC833 https://www.analog.com/media/en/technical-documentation/data-sheets/hmc833.pdf
 
@@ -139,7 +136,7 @@ Core area estimate for MAX2871 route [I]: 5x5 QFN + loop filter (3 caps, 2 R, 04
 
 ### 4.4 Domestic Chinese synthesisers (off-LCSC, added on the second pass)
 
-The LCSC-only sweep in 4.3 found no part under $9. Dropping that constraint changes the picture, because the Chinese domestic RF industry has integrated-VCO synthesisers that never reach LCSC and are sold through 世强 (Sekorm) and the vendors' own agents.
+The LCSC-only sweep in 4.3 found no low-cost part. Dropping that constraint changes the picture, because the Chinese domestic RF industry has integrated-VCO synthesisers that never reach LCSC and are sold through 世强 (Sekorm) and the vendors' own agents.
 
 | Part | Vendor | Spec | Package | Source |
 |---|---|---|---|---|
@@ -156,7 +153,7 @@ X214 is the interesting one, for three reasons.
 3. On the vendor's own Q&A page, dated 2023-06-19, an engineer asks (translated) "I am making an FPV drone transmission module, I need a wideband VCO for the 3.3 GHz band, 3.2 to 3.6 GHz, preferably an integrated PLL+VCO chip, any domestic recommendation?" and is answered with X214. [P] Divimath's second output is 3.3 GHz. That is circumstantial and nothing more, but it is the only lead found on what the non-RichWave products contain.
 
 Open before X214 can be designed in:
-- The datasheet is behind a Sekorm member login (HTTP 457 to non-members). No public price, no public phase noise plot, no confirmation that the charge pump and tune node are brought out for external loop filtering, which is the whole requirement.
+- The datasheet is behind a Sekorm member login (HTTP 457 to non-members). No public phase noise plot, no confirmation that the charge pump and tune node are brought out for external loop filtering, which is the whole requirement.
 - SWIC is a CETC subsidiary. Divimath advertises NDAA compliance and builds in Thailand; a CETC part in the RF chain of an EU open-hardware VTX is a commercial and export decision, not only a technical one.
 - Small-quantity supply to a Belgian buyer is unproven.
 
@@ -164,64 +161,64 @@ Open before X214 can be designed in:
 
 ### 5.1 2.9 GHz synth + external doubler
 
-ADF4351/ADF4350 at 2822 to 2973 MHz, then x2. Doubling doubles deviation (helps: only 4 MHz p-p at the VCO) and adds 6 dB to phase noise [I]. Problems: no cheap doubler IC on LCSC (HMC575 is 3 to 4.5 GHz input and $37, CY2-143+ 4 to 14 GHz $9, both low stock [P]); a passive or BJT doubler (BFP840/BFR193-class transistor driven into class C, output tank at 5.8 GHz, then the band-pass filter) costs 6 to 10 parts and 3 x 6 mm, and the fundamental leak at 2.9 GHz must be filtered to -60 dBc [I]. This is what the RTC6705 does internally (2.9 GHz VCO, "2G VCO" registers, "5G" pre-driver) [I from P]. Only worth it if the 6 GHz synths vanish; ADF4351 clones are not on LCSC either, so no cost advantage.
+ADF4351/ADF4350 at 2822 to 2973 MHz, then x2. Doubling doubles deviation (helps: only 4 MHz p-p at the VCO) and adds 6 dB to phase noise [I]. Problems: no cheap doubler IC on LCSC (HMC575 is 3 to 4.5 GHz input, CY2-143+ 4 to 14 GHz, both low stock [P]); a passive or BJT doubler (BFP840/BFR193-class transistor driven into class C, output tank at 5.8 GHz, then the band-pass filter) costs 6 to 10 parts and 3 x 6 mm, and the fundamental leak at 2.9 GHz must be filtered to -60 dBc [I]. This is what the RTC6705 does internally (2.9 GHz VCO, "2G VCO" registers, "5G" pre-driver) [I from P]. Only worth it if the 6 GHz synths vanish; ADF4351 clones are not on LCSC either, so no cost advantage.
 
 ### 5.2 Discrete VCO + PLL (pre-RTC6705 style)
 
 LCSC has an unexpected item: Innotion (Shenzhen) YSGM VCO modules, SMD 9x7x2 mm, 0 to 5 V tune, 4.2 to 6 V supply [P via LCSC product page]:
 
-| Part | LCSC | Range | Pout | Stock | Price $ |
-|---|---|---|---|---|---|
-| YSGM556006 | C52043380 | 5320 to 6060 MHz | >= 6 dBm at 5 V | 1982 | 1.39 (0.89 @100) |
-| YSGMTC5800 | C52043383 | 5430 to 6060 MHz | >= 7 dBm at 5 V | 1901 | 2.56 (1.70 @100) |
-| YSGM515906 | C52043378 | not fetched, name suggests 5150 to 5900 [G] | | 1958 | 1.39 |
+| Part | LCSC | Range | Pout | Stock |
+|---|---|---|---|---|
+| YSGM556006 | C52043380 | 5320 to 6060 MHz | >= 6 dBm at 5 V | 1982 |
+| YSGMTC5800 | C52043383 | 5430 to 6060 MHz | >= 7 dBm at 5 V | 1901 |
+| YSGM515906 | C52043378 | not fetched, name suggests 5150 to 5900 [G] | | 1958 |
 
-Phase noise, KVCO and pushing are not on the LCSC page [P]; the range implies ~150 MHz/V [I], so video drive is ~50 mVpp and supply noise matters. Lock it with LMX2487 (C2876370, 4x4, $5.62, 272 stock, 6 GHz frac-N, external VCO) [P]. Core area: 9x7 VCO + 4x4 PLL + loop filter + reference, about 10 x 16 mm [I], so it misses the 10 x 10 target. This is architecturally the 2010-era Boscam/Airwave approach (see 5.3) with a module VCO. Cheapest BOM (~$8) but two unknown-quality parts and a 5 V rail. A fully discrete transistor+varactor VCO at 5.8 GHz on JLCPCB FR-4 is not repeatable enough for assembly without per-unit tuning [I].
+Phase noise, KVCO and pushing are not on the LCSC page [P]; the range implies ~150 MHz/V [I], so video drive is ~50 mVpp and supply noise matters. Lock it with LMX2487 (C2876370, 4x4, 272 stock, 6 GHz frac-N, external VCO) [P]. Core area: 9x7 VCO + 4x4 PLL + loop filter + reference, about 10 x 16 mm [I], so it misses the 10 x 10 target. This is architecturally the 2010-era Boscam/Airwave approach (see 5.3) with a module VCO. Lowest part count but two unknown-quality parts and a 5 V rail. A fully discrete transistor+varactor VCO at 5.8 GHz on JLCPCB FR-4 is not repeatable enough for assembly without per-unit tuning [I].
 
 ### 5.3 What pre-RTC6705 VTXs used
 
 No documented 5.8 GHz FPV transmitter without an RTC6705 was found. Boscam TX5813 (10 mW) and TX5823 (200 mW) spec V1.3 dated 2010-09-02 (skytech.ir/DownLoad/File/6640_TX5823-Spec-V1.pdf, foxtechfpv.com/product/5.8G%20modules/tx5813/TX5813-Spec-V1.pdf): 8 channels 5705 to 5945 MHz on 3 parallel pins, 6.5 MHz audio subcarrier, 5 V 170 mA, 22x19 mm [P]. That 3-pin table is the RTC6705 pin-select mode and the chip datasheet predates the module (Sep 2007), so TX5813 = RTC6705, TX5823 = RTC6705 + PA [I]. Boscam TS351 (2012 manual, rigpix.com/atv/boscam_ts351_manual.pdf) is a TX5823 in a box [I]; TS832 was made by Skyzone (Oscar Liang 2014) [P], RTC6705 inside. ImmersionRC 25 mW (2010) was "based on an Airwave module" (retailer claim) [P]; Airwave AWM661TX/AWM6W5V_TX datasheets say "built-in worldwide 5.8GHz ISM band RF IC", PLL synthesiser, 3-bit channel pins, chip not named (airwave.com.tw/en/product/file/614397-1) [P], most likely RTC6705 [G]. Lawmate and FatShark "NexwaveRF": no internal photos on fccid.io, nothing verified [P].
 
-The only pre-integration architecture on record is amateur 5.7 GHz ATV: a 2.7 to 3 GHz VCO plus doubler or a 5.8 GHz VCO plus prescaler, locked by a 1.2 GHz PLL (Fujitsu MB15E03SL, 64/65 prescaler) or a 4 GHz PLL (ADF4113) with an external /2 or /4 (HMC433E, DC to 8 GHz), video summed into the tune line (YO4HFU, LMX2326-based builds) [P for the chips, G that any commercial FPV module used them]. Today: MB15E03 LCSC C21579 out of stock and obsolete at DigiKey [P]; ADF4113 20 pcs (C654605) [P]; HMC433E C455140 18 pcs $10.03 [P]. Dead end for a JLCPCB build.
+The only pre-integration architecture on record is amateur 5.7 GHz ATV: a 2.7 to 3 GHz VCO plus doubler or a 5.8 GHz VCO plus prescaler, locked by a 1.2 GHz PLL (Fujitsu MB15E03SL, 64/65 prescaler) or a 4 GHz PLL (ADF4113) with an external /2 or /4 (HMC433E, DC to 8 GHz), video summed into the tune line (YO4HFU, LMX2326-based builds) [P for the chips, G that any commercial FPV module used them]. Today: MB15E03 LCSC C21579 out of stock and obsolete at DigiKey [P]; ADF4113 20 pcs (C654605) [P]; HMC433E C455140 18 pcs [P]. Dead end for a JLCPCB build.
 
 ## 6. Output chain on LCSC (jlcsearch 2026-08-24)
 
 A synth gives +5 dBm max. The RTC6705 gave +13 dBm, and existing VTX PA stages expect that. Two options: one 12 dB gain block to recreate the +13 dBm node and keep a known PA, or feed a 27 to 32 dB WLAN PA directly from the synth (5 dBm + 27 dB = 32 dBm before back-off, which is more than a 400 mW class needs; the PA bias/Vcc control sets the level as OpenVTx already does) [I].
 
-| Role | Part | Package | Spec | LCSC | Stock | Price $ @1 | Basic? |
-|---|---|---|---|---|---|---|---|
-| Gain block | TRF37A73IDSGR (TI) | WSON-8 2x2 | 1 MHz to 6 GHz, 12 dB, P1dB 14.5 dBm at 2 GHz (lower at 5.8 [G]), 3.3 V 65 mA | C2151364 | 5024 | 1.18 (0.85 @100) | no |
-| Gain block | TRF37C73IDSGT | WSON-8 2x2 | 18.5 dB, P1dB 16.5 dBm | C2654174 | 46 | 1.07 | no |
-| Gain block | GRF2505 (Guerrilla RF) | DFN-6 1.5x1.5 | 4 to 6 GHz LNA/driver, 11.3 dB, P1dB 19 dBm | C20616772 | 34 | 6.34 | no |
-| Gain block | PMA3-83LNW+ (Mini-Circuits) | QFN-12 | 0.4 to 8 GHz, 20.5 dB, P1dB 20.5 dBm, 5 V | C5200777 | 2013 | 9.51 | no |
-| PA 25 to 400 mW | SKY85712-21 (Skyworks) | QFN-16 3x3 | 5.15 to 5.85 GHz FEM: PA 27 dB, +19 to 20 dBm linear WLAN, switch P1dB ~25 dBm, 5 V 275 to 330 mA | C2654407 | 5 | 0.88 | no |
-| PA 25 to 400 mW | SKY85405-11 | QFN-20 4x4 | 5 GHz InGaP PA, 5 V; LCSC file is a 2-page brief, no gain/P1dB [P] | C2151489 | 100 | 2.25 | no |
-| PA 1 W class | QPA9501TR13 (Qorvo) | QFN-20 4x4 | 32 dB at 5800 MHz, P1dB 29.5 min / 33 typ dBm, 3.3 to 5 V 520 mA [P] | C2911573 | 261 | 5.82 | no |
-| PA 1 W class | TQP5525 (Qorvo) | QFN-20 4x4 | 32 dB, P1dB 32 dBm, 350 mA, power detector [P] | C471153 | 28 | 6.01 | no |
-| PA 1 W class, Chinese | GWQ5929A (GPowerTek) | QFN-20 4x4 | 31 dB, Psat 34 dBm [P] | C41410383 | 51 | 4.96 (3.09 @1500) | no |
-| FEM | RFFM4558TR7 (Qorvo) | QFN-16 2.5x2.5 | 32 dB TX, 24 dBm MCS0, integrated filter + detector [P] | C43526386 | 30 | 2.27 | no |
-| Gain block | GVA-63+ (Mini-Circuits) | SOT-89 | 15.9 dB, P1dB +11.8 dBm at 6 GHz, 5 V 69 mA [P] | C3193270 | 6764 | 2.04 | no |
-| Gain block | GVA-83+ | SOT-89 | 12.3 dB, P1dB +18.1 dBm at 6 GHz, 5 V 72 mA [P] | C3193256 | 4 | 4.49 | no |
-| Gain block | TQP3M9037 (Qorvo) | DFN-8 2x2 | 0.7 to 6 GHz, 20 dB, P1dB 20 dBm (spec at 1.9 GHz) [P] | C415712 | 2477 | 2.93 | no |
-| Gain block | QPL9547TR7 (Qorvo) | DFN-8 2x2 | 0.1 to 6 GHz, 16.8 dB, P1dB +23 dBm at 5.1 GHz [P] | C5367093 | 0 LCSC / 2663 JLC | 2.05 | no |
-| Gain block | SKY65017-70LF | SOT-89 | 0.1 to 6 GHz, 20 dB / 20 dBm at 2 GHz, +-1.5 dB to 6 GHz, 5 V 120 mA [P] | C2649469 | 5345 | 2.16 | no |
-| PA 25 to 400 mW | SKY85717-11 | QFN-16 2.5x2.5 | 5 GHz, 28 dB | C2654452 | 41 | 2.73 | no |
-| PA 25 to 400 mW | SKY85743-21 | FEM | 5 GHz LNA+PA+switch | C5348950 | 729 | 2.91 | no |
-| PA 400 mW to 1 W | SE5004L-R (Skyworks) | QFN-20 4x4 | 5.15 to 5.85 GHz, 32 dB, P1dB 30 to 34 dBm, Psat 26 dBm at 5 V, 600 to 800 mA, power detector | C210263 | 1866 | 7.77 (5.38 @100) | no |
-| PA | QPA9501 (Qorvo) | QFN-20 4x4 | 5 GHz WiFi PA with detector | C2911573 | 263 | 5.80 | no |
-| PA | PHA-83W+ (Mini-Circuits) | SOT-89 | 50 MHz to 8 GHz, 15.7 dB, P1dB 23.3 dBm, 9 V | C20231740 | 72 | 11.97 | no |
-| Band-pass | RFBPF1608060K98Q1C (Walsin) | 1608 3P | 5150 to 5950 MHz, 0.6 dB IL, 40 dB rej [P] | C2442150 | 13370 | 0.074 | no |
-| Band-pass | DEA165538BT-2236B1-H / -2263A1-H (TDK) | 1608 3P | 5150 to 5925 MHz, 1.16 / 0.63 dB, 31.5 / 38 dB rej [P] | C2651072 / C2835388 | 925 / 100 | 0.22 / 0.18 | no |
-| Band-pass | DEA165363BT-2124A3 (TDK) | 1608 4P | 4900 to 5825 MHz, 1.1 dB, 49 dB rej [P] | C307897 | 7890 | 0.14 | no |
-| Band-pass | LFB185G37CF2D114 (Murata) | 1.6x0.8 4P | 4.9 to 5.84 GHz, 1.5 dB | C2766051 | 4706 | 0.15 | no |
-| Band-pass | BPF1608LM08R5000A (Yageo) | 1608 3P | 4900 to 5840 MHz, 1.5 dB, 35 dB [P] | C513637 | 3440 | 0.036 | no |
-| Low-pass | LFCN-5850+ (Mini-Circuits) | 3216 | DC to 5850, fco 6.54 GHz [P] | C2683450 | 100 | 3.01 | no |
-| Coupler | TFSC06054125-2111C1X (TDK) | 0605 | 5.15 to 5.85 GHz directional coupler, for a power detector [P] | C2833716 | 7464 | 0.15 | no |
-| Triplexer as BPF | TPX255850MT-7013A3 (TDK) | 2.5x2.0 | high band port 5150 to 5850 MHz, 0.35 dB IL, 13 to 28 dB rejection | C531312 | 3795 | 0.22 | no |
-| Band-pass | BFCN-5750+ (Mini-Circuits) | 3.2x1.6 | 5650 to 5850 MHz, 1.84 dB | C4989833 | 139 | 8.72 | no |
-| Band-pass | BFCG-5600+ | 2x1.2 | 5150 to 5990 MHz, 1.2 dB | C4989507 | 6 | 9.39 | no |
-| Low-pass | LFCN-6000+ (Mini-Circuits) | 3.2x1.6 | fc 6.8 GHz | C879870 | 74 | 3.14 | no |
-| Not on LCSC | RFPA5542 (Qorvo, BetaFPV PA): EOL announced 2023-10-18, DigiKey none [P]. SKY85747-11 (34.5 dB, 27 dBm MCS0, the best fit) not on LCSC or DigiKey [P]. SKY65135 and SE2623L are 2.4 GHz parts [P]. Richwave RTC76401/76402S not indexed [P]. Johanson 5515BP15B200 none; 5515BP15B0725001E 5150 to 5875 MHz 0805 is DigiKey only, $0.69 [P]. | | | | | | |
+| Role | Part | Package | Spec | LCSC | Stock | Basic? |
+|---|---|---|---|---|---|---|
+| Gain block | TRF37A73IDSGR (TI) | WSON-8 2x2 | 1 MHz to 6 GHz, 12 dB, P1dB 14.5 dBm at 2 GHz (lower at 5.8 [G]), 3.3 V 65 mA | C2151364 | 5024 | no |
+| Gain block | TRF37C73IDSGT | WSON-8 2x2 | 18.5 dB, P1dB 16.5 dBm | C2654174 | 46 | no |
+| Gain block | GRF2505 (Guerrilla RF) | DFN-6 1.5x1.5 | 4 to 6 GHz LNA/driver, 11.3 dB, P1dB 19 dBm | C20616772 | 34 | no |
+| Gain block | PMA3-83LNW+ (Mini-Circuits) | QFN-12 | 0.4 to 8 GHz, 20.5 dB, P1dB 20.5 dBm, 5 V | C5200777 | 2013 | no |
+| PA 25 to 400 mW | SKY85712-21 (Skyworks) | QFN-16 3x3 | 5.15 to 5.85 GHz FEM: PA 27 dB, +19 to 20 dBm linear WLAN, switch P1dB ~25 dBm, 5 V 275 to 330 mA | C2654407 | 5 | no |
+| PA 25 to 400 mW | SKY85405-11 | QFN-20 4x4 | 5 GHz InGaP PA, 5 V; LCSC file is a 2-page brief, no gain/P1dB [P] | C2151489 | 100 | no |
+| PA 1 W class | QPA9501TR13 (Qorvo) | QFN-20 4x4 | 32 dB at 5800 MHz, P1dB 29.5 min / 33 typ dBm, 3.3 to 5 V 520 mA [P] | C2911573 | 261 | no |
+| PA 1 W class | TQP5525 (Qorvo) | QFN-20 4x4 | 32 dB, P1dB 32 dBm, 350 mA, power detector [P] | C471153 | 28 | no |
+| PA 1 W class, Chinese | GWQ5929A (GPowerTek) | QFN-20 4x4 | 31 dB, Psat 34 dBm [P] | C41410383 | 51 | no |
+| FEM | RFFM4558TR7 (Qorvo) | QFN-16 2.5x2.5 | 32 dB TX, 24 dBm MCS0, integrated filter + detector [P] | C43526386 | 30 | no |
+| Gain block | GVA-63+ (Mini-Circuits) | SOT-89 | 15.9 dB, P1dB +11.8 dBm at 6 GHz, 5 V 69 mA [P] | C3193270 | 6764 | no |
+| Gain block | GVA-83+ | SOT-89 | 12.3 dB, P1dB +18.1 dBm at 6 GHz, 5 V 72 mA [P] | C3193256 | 4 | no |
+| Gain block | TQP3M9037 (Qorvo) | DFN-8 2x2 | 0.7 to 6 GHz, 20 dB, P1dB 20 dBm (spec at 1.9 GHz) [P] | C415712 | 2477 | no |
+| Gain block | QPL9547TR7 (Qorvo) | DFN-8 2x2 | 0.1 to 6 GHz, 16.8 dB, P1dB +23 dBm at 5.1 GHz [P] | C5367093 | 0 LCSC / 2663 JLC | no |
+| Gain block | SKY65017-70LF | SOT-89 | 0.1 to 6 GHz, 20 dB / 20 dBm at 2 GHz, +-1.5 dB to 6 GHz, 5 V 120 mA [P] | C2649469 | 5345 | no |
+| PA 25 to 400 mW | SKY85717-11 | QFN-16 2.5x2.5 | 5 GHz, 28 dB | C2654452 | 41 | no |
+| PA 25 to 400 mW | SKY85743-21 | FEM | 5 GHz LNA+PA+switch | C5348950 | 729 | no |
+| PA 400 mW to 1 W | SE5004L-R (Skyworks) | QFN-20 4x4 | 5.15 to 5.85 GHz, 32 dB, P1dB 30 to 34 dBm, Psat 26 dBm at 5 V, 600 to 800 mA, power detector | C210263 | 1866 | no |
+| PA | QPA9501 (Qorvo) | QFN-20 4x4 | 5 GHz WiFi PA with detector | C2911573 | 263 | no |
+| PA | PHA-83W+ (Mini-Circuits) | SOT-89 | 50 MHz to 8 GHz, 15.7 dB, P1dB 23.3 dBm, 9 V | C20231740 | 72 | no |
+| Band-pass | RFBPF1608060K98Q1C (Walsin) | 1608 3P | 5150 to 5950 MHz, 0.6 dB IL, 40 dB rej [P] | C2442150 | 13370 | no |
+| Band-pass | DEA165538BT-2236B1-H / -2263A1-H (TDK) | 1608 3P | 5150 to 5925 MHz, 1.16 / 0.63 dB, 31.5 / 38 dB rej [P] | C2651072 / C2835388 | 925 / 100 | no |
+| Band-pass | DEA165363BT-2124A3 (TDK) | 1608 4P | 4900 to 5825 MHz, 1.1 dB, 49 dB rej [P] | C307897 | 7890 | no |
+| Band-pass | LFB185G37CF2D114 (Murata) | 1.6x0.8 4P | 4.9 to 5.84 GHz, 1.5 dB | C2766051 | 4706 | no |
+| Band-pass | BPF1608LM08R5000A (Yageo) | 1608 3P | 4900 to 5840 MHz, 1.5 dB, 35 dB [P] | C513637 | 3440 | no |
+| Low-pass | LFCN-5850+ (Mini-Circuits) | 3216 | DC to 5850, fco 6.54 GHz [P] | C2683450 | 100 | no |
+| Coupler | TFSC06054125-2111C1X (TDK) | 0605 | 5.15 to 5.85 GHz directional coupler, for a power detector [P] | C2833716 | 7464 | no |
+| Triplexer as BPF | TPX255850MT-7013A3 (TDK) | 2.5x2.0 | high band port 5150 to 5850 MHz, 0.35 dB IL, 13 to 28 dB rejection | C531312 | 3795 | no |
+| Band-pass | BFCN-5750+ (Mini-Circuits) | 3.2x1.6 | 5650 to 5850 MHz, 1.84 dB | C4989833 | 139 | no |
+| Band-pass | BFCG-5600+ | 2x1.2 | 5150 to 5990 MHz, 1.2 dB | C4989507 | 6 | no |
+| Low-pass | LFCN-6000+ (Mini-Circuits) | 3.2x1.6 | fc 6.8 GHz | C879870 | 74 | no |
+| Not on LCSC | RFPA5542 (Qorvo, BetaFPV PA): EOL announced 2023-10-18, DigiKey none [P]. SKY85747-11 (34.5 dB, 27 dBm MCS0, the best fit) not on LCSC or DigiKey [P]. SKY65135 and SE2623L are 2.4 GHz parts [P]. Richwave RTC76401/76402S not indexed [P]. Johanson 5515BP15B200 none; 5515BP15B0725001E 5150 to 5875 MHz 0805 is DigiKey only [P]. | | | | | |
 
 Observations:
 - No JLCPCB basic part in this table; everything is extended (one-off feeder fee each) [P].
@@ -231,18 +228,18 @@ Observations:
 
 ## 7. Candidate approaches compared
 
-| Approach | Core parts | LCSC / stock / price | Core area | Modulation | Firmware effort | Risk |
+| Approach | Core parts | LCSC / stock | Core area | Modulation | Firmware effort | Risk |
 |---|---|---|---|---|---|---|
-| A. Keep RTC6705(A), consign broker stock | RTC6705A, 8 MHz xtal | LCSC C913074 0 stock; brokers $5 to $12 | 6x6 QFN + 3 parts, 8x8 mm | proven | none (OpenVTx as is) | single source, price volatility, counterfeit risk from brokers, no future |
-| B. MAX2871 (or MAX2870) fundamental synth, video into TUNE | MAX2871, 26 MHz TCXO (REF_IN minimum is 10 MHz, so no 8 MHz crystal), loop filter, unity-gain video buffer, Cinj, mute | C7458627, 752, $9.94 ($6.93 @100); DigiKey 8.5k | ~9x9 mm | KVCO 100 MHz/V, 39 pF into TUNE gives +-3.8 MHz from 1 Vpp; loop BW 505 Hz; manual VCO band select | new driver: 6 x 32-bit registers, integer-N, band table; SmartAudio/Tramp/MSP layers unchanged | KVCO per band changes deviation; VAS unusable at this loop bandwidth (8.4); 200 mA at 3.3 V vs 95 mA; DigiKey price 2x LCSC |
-| C. LMX2572 fundamental synth, same modulation | LMX2572RHAR + same periphery | C2665711, 2220, $10.21 ($7.75 @100); DigiKey 26 wk | ~10x10 mm | KVCO 57 to 82 MHz/V; Vtune pin needs 1.5 nF shunt which fights 6.5 MHz injection | new driver, ~110 registers but TI gives a TICS Pro register dump | bigger package, less community use, injection point awkward |
-| D. ADF4351 at 2.9 GHz + discrete x2 doubler | ADF4351 + BJT doubler + 5.8 GHz tank + BPF | C654681, 289, $14.79 | 5x5 + 3x6 doubler, ~10x12 mm | 4 MHz p-p at VCO, 40 MHz/V, 100 mVpp; doubler doubles PN | driver exists in many hobby projects | more expensive than B, more RF parts, fundamental leak, no reason to prefer |
-| E. Innotion YSGM VCO module + LMX2487 PLL | YSGM556006 + LMX2487 + loop filter + ref | C52043380 1982 $1.39; C2876370 272 $5.62 | 9x7 + 4x4, ~10x16 mm | ~150 MHz/V [I], 50 mVpp; supply pushing unknown | LMX2487 driver, simple | unknown phase noise and pushing, 5 V rail, exceeds area target, module vendor risk |
+| A. Keep RTC6705(A) | RTC6705A, 8 MHz xtal | LCSC C913074 0 stock | 6x6 QFN + 3 parts, 8x8 mm | proven | none (OpenVTx as is) | single source, no authorised stock, no future |
+| B. MAX2871 (or MAX2870) fundamental synth, video into TUNE | MAX2871, 26 MHz TCXO (REF_IN minimum is 10 MHz, so no 8 MHz crystal), loop filter, unity-gain video buffer, Cinj, mute | C7458627, 752; DigiKey 8.5k | ~9x9 mm | KVCO 100 MHz/V, 39 pF into TUNE gives +-3.8 MHz from 1 Vpp; loop BW 505 Hz; manual VCO band select | new driver: 6 x 32-bit registers, integer-N, band table; SmartAudio/Tramp/MSP layers unchanged | KVCO per band changes deviation; VAS unusable at this loop bandwidth (8.4); 200 mA at 3.3 V vs 95 mA |
+| C. LMX2572 fundamental synth, same modulation | LMX2572RHAR + same periphery | C2665711, 2220; DigiKey 26 wk | ~10x10 mm | KVCO 57 to 82 MHz/V; Vtune pin needs 1.5 nF shunt which fights 6.5 MHz injection | new driver, ~110 registers but TI gives a TICS Pro register dump | bigger package, less community use, injection point awkward |
+| D. ADF4351 at 2.9 GHz + discrete x2 doubler | ADF4351 + BJT doubler + 5.8 GHz tank + BPF | C654681, 289 | 5x5 + 3x6 doubler, ~10x12 mm | 4 MHz p-p at VCO, 40 MHz/V, 100 mVpp; doubler doubles PN | driver exists in many hobby projects | more RF parts than B, fundamental leak, no reason to prefer |
+| E. Innotion YSGM VCO module + LMX2487 PLL | YSGM556006 + LMX2487 + loop filter + ref | C52043380 1982; C2876370 272 | 9x7 + 4x4, ~10x16 mm | ~150 MHz/V [I], 50 mVpp; supply pushing unknown | LMX2487 driver, simple | unknown phase noise and pushing, 5 V rail, exceeds area target, module vendor risk |
 | F. Fully discrete transistor+varactor VCO + PLL | BFP840-class + SMV varactor + LMX2487 | parts on LCSC | 8x8 + 4x4 | direct varactor drive | as E | not repeatable on JLCPCB FR-4 without tuning, EMC spurs; only for hobby builds |
 
 ## 8. The design
 
-Decisions taken 2026-08-24: FPV table only, 5645 to 5945 MHz, no 4.9 to 6.0 GHz wideband and no 3.3 GHz second band. MAX2871 for the prototype, with the MAX2870 as the pin- and software-compatible fallback [P] and the domestic parts of 4.4 pursued in parallel as a production cost-down. LMX2572 stays the second-source layout if Maxim stock disappears; different footprint, so a board variant rather than a swap.
+Decisions taken 2026-08-24: FPV table only, 5645 to 5945 MHz, no 4.9 to 6.0 GHz wideband and no 3.3 GHz second band. MAX2871 for the prototype, with the MAX2870 as the pin- and software-compatible fallback [P] and the domestic parts of 4.4 pursued in parallel. LMX2572 stays the second-source layout if Maxim stock disappears; different footprint, so a board variant rather than a swap.
 
 Every value in this section comes from the MAX2871 datasheet or is computed from it. The design targets the same job the RTC6705 does, not more.
 
@@ -310,9 +307,9 @@ Cost of this: zero parts, some firmware. The alternative, an analog switch that 
 
 MAX2871 outputs are differential open-collector and need an RF choke or a 50 ohm pullup per side [P]. Single-ended off RFOUTA with a choke, RFOUTB tied to VCC_RF. APWR = 11 gives +5 dBm, but that is specified at 3000 MHz [P]; budget +2 dBm at 5.8 GHz until measured.
 
-Harmonics at the fundamental output are -40 dBc second and -34 dBc third [P]. The RTC6705 delivered -60 dBc after its reference filter [P], so a band-pass after the synth is mandatory, not a nicety. The Walsin RFBPF1608060K98Q1C (5150 to 5950 MHz, 0.6 dB, 40 dB rejection, $0.074, 13k stock) covers the entire FPV table with margin and does it in an 1608.
+Harmonics at the fundamental output are -40 dBc second and -34 dBc third [P]. The RTC6705 delivered -60 dBc after its reference filter [P], so a band-pass after the synth is mandatory, not a nicety. The Walsin RFBPF1608060K98Q1C (5150 to 5950 MHz, 0.6 dB, 40 dB rejection, 13k stock) covers the entire FPV table with margin and does it in an 1608.
 
-- 25 mW EU build: 25 mW is +14 dBm at the connector. The synth's +2 dBm plus TRF37A73's 12 dB lands at +12.4 dBm after the band-pass and connector, which is 17 mW, and APWR only trims downward, so that combination cannot reach the target. Use a higher-gain block and trim down instead: QPL9547 (16.8 dB, P1dB +23 dBm specified at 5.1 GHz, DFN-8 2x2, $2.05, 2663 at JLCPCB) gives about +17 dBm, leaving 3 dB of APWR headroom. SKY65017-70LF (20 dB, flat to +-1.5 dB at 6 GHz, SOT-89, 5 V 120 mA, $2.16, 5345 stock) is the alternative. GVA-63+ is out: its P1dB is +11.8 dBm at 6 GHz, below the target. No PA on this build.
+- 25 mW EU build: 25 mW is +14 dBm at the connector. The synth's +2 dBm plus TRF37A73's 12 dB lands at +12.4 dBm after the band-pass and connector, which is 17 mW, and APWR only trims downward, so that combination cannot reach the target. Use a higher-gain block and trim down instead: QPL9547 (16.8 dB, P1dB +23 dBm specified at 5.1 GHz, DFN-8 2x2, 2663 at JLCPCB) gives about +17 dBm, leaving 3 dB of APWR headroom. SKY65017-70LF (20 dB, flat to +-1.5 dB at 6 GHz, SOT-89, 5 V 120 mA, 5345 stock) is the alternative. GVA-63+ is out: its P1dB is +11.8 dBm at 6 GHz, below the target. No PA on this build.
 - 400 mW to 1 W build: add QPA9501 after the first band-pass (32 dB at 5800 MHz, P1dB 29.5 dBm min, 33 dBm typ [P]), then a second band-pass or low-pass. Power is set by PA bias from the MCU PWM exactly as OpenVTx already does, so `target_set_power_dB` and its per-board table carry over unchanged.
 
 Pit mode: MTLD (register 4 bit 10) mutes the outputs whenever digital lock detect is low, and muted output power is -40 dBm [P]. That replaces OpenVTx's "PA off, wait 500 ms, PA on" dance with a hardware interlock. Keep the PA bias at zero on top of it, since -40 dBm through a 32 dB PA is still -8 dBm.
@@ -347,9 +344,9 @@ Nothing in section 8 is hard except one thing that no public source documents: w
 
 Synth, TCXO, loop filter, video buffer, Cinj, u.FL, and any MCU with SPI. Measure occupied bandwidth and harmonics on a tinySA Ultra, then put an RX5808 on it and look at the picture and the RSSI against a known RTC6705 VTX at the same deviation. If the picture is clean, everything left is layout and sourcing.
 
-### 8.9 Cost, honestly
+### 8.9 Supply
 
-Against the historic $0.85 to $2.30 catalogue price for an RTC6705, this loses and always will. Against the price that actually exists in 2026, $5 to $12 from brokers with no datasheet guarantee and no second source, the core RF BOM is roughly $10.25 at qty 100: MAX2871 $6.93, 26 MHz TCXO about $0.50, QPL9547 gain block $2.05, Walsin band-pass $0.07, loop filter and injection passives about $0.10, buffer and mute about $0.60. That is $3 to $4 per board over a broker RTC6705, for real stock, a public datasheet, a pin-compatible second source, and 11 dB better phase noise. The domestic route of 4.4 is where that gap closes, if the parts turn out to be buyable.
+The RTC6705 has no authorised distributor stock and no second source. The synthesiser route trades a higher part count for real stock, a public datasheet, a pin-compatible second source (MAX2870), and 11 dB better phase noise. The domestic route of 4.4 reduces the part count further, if the parts turn out to be buyable.
 
 Block diagram:
 
@@ -384,11 +381,11 @@ Still open:
 - The loop filter of 8.2 is computed and numerically checked, not simulated in EE-Sim and not built. Lock time of about 5 ms is an estimate.
 - VAS mis-selecting sub-bands at a 500 Hz loop bandwidth is reasoned from the fixed 50 kHz state machine clock against the loop time constant, not observed. If VAS turns out to work, 8.4 gets simpler.
 - MAX2871 output power is specified at 3000 MHz. The +2 dBm assumed at 5.8 GHz is a guess pending measurement.
-- X214: datasheet is behind a Sekorm member login and was not read. The on-chip multiplier, whether the charge pump and tune node are brought out for an external loop filter, phase noise, price, and small-quantity availability outside China are all unconfirmed. The link between X214 and any shipping FPV product is circumstantial.
+- X214: datasheet is behind a Sekorm member login and was not read. The on-chip multiplier, whether the charge pump and tune node are brought out for an external loop filter, phase noise and small-quantity availability outside China are all unconfirmed. The link between X214 and any shipping FPV product is circumstantial.
 - CLF2574 and the 润积电 parts come from search snippets, not datasheets.
 - That the RTC6705 VCO runs at half frequency with a doubler: inferred from FRF = 2*(N*64+A)*Fpfd and the 2G/5G register names, not stated.
 - Divimath's actual architecture is undisclosed. Whether Foxeer, iFlight, Rush, TBS, Happymodel or Walksnail analog VTX use the RTC6705 is unresolved; section 1.1 argues they can, not that they do. No teardown or FCC internal photo was found for any of them.
 - Innotion YSGM VCO phase noise, pushing and KVCO are not on the LCSC page.
 - 5 GHz WLAN PA and ceramic filter behaviour above 5850 MHz is outside their rated band, no data. Band E channel 8 at 5945 MHz and Raceband 8 at 5917 MHz are both affected.
-- LCSC stock and prices are jlcsearch mirror values on 2026-08-24; DigiKey prices are from the same day.
+- LCSC stock figures are jlcsearch mirror values on 2026-08-24; DigiKey stock is from the same day.
 - EU SRD 5725 to 5875 MHz at 25 mW e.i.r.p. is confirmed only through search snippets of CEPT and ECO pages, not the current ERC/REC 70-03 Annex 1 text.
