@@ -26,8 +26,8 @@ files carry them.
 ## Environment
 
 There is no schematic or board to check yet. Once they exist, the ERC, DRC
-and netlist commands are the template's, on `hardware/OpenVTX.kicad_sch` and
-`hardware/OpenVTX.kicad_pcb`. On macOS `kicad-cli` is at
+and netlist commands are the template's, on the schematic and board files beside
+`hardware/OpenVTX.kicad_pro`. On macOS `kicad-cli` is at
 `/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli`; `KPY` is KiCad's
 bundled Python,
 `/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3`.
@@ -64,7 +64,7 @@ Identical in every OpenDrone board repo. Do not edit here; edit the template.
 Board-specific paths are in Environment above. `KPY` is KiCad's bundled
 Python named there.
 
-- Draw the schematic: only on request, from `hardware/DESIGN.md`, in KiCad, into `hardware/OpenVTX.kicad_sch`; then replace the Environment section above with the template's commands.
+- Draw the schematic: only on request, from `hardware/DESIGN.md`, in KiCad, into the schematic beside `hardware/OpenVTX.kicad_pro`; then replace the Environment section above with the template's commands.
 - Add a part: place it from the `OpenDrone` library if `hardware/KiCad-Library/PARTS-USED.md` lists it; otherwise import it into `lib` with `$KPY <hardware-tooling>/hardware/kicad/import_part.py --repo hardware` (read `--help` first), KiCad closed.
 - Fill supplier fields once a schematic exists: `python3 hardware/tools/add_mpn_fields.py` to preview, `--write` to apply, KiCad closed.
 - Update the shared library: `git submodule update --remote hardware/KiCad-Library`, commit as its own reviewed change; run DRC once a board exists.
