@@ -6,11 +6,13 @@ Open-source 5.8GHz analog video transmitter with software-defined OSD, based on 
 
 Early stage: parts are selected and project-local libraries are in place. Schematic and layout are not started yet. The full design reference lives in [hardware/DESIGN.md](hardware/DESIGN.md); third-party datasheets and the OpenOSD-X reference schematic are linked from its Reference Documents section.
 
-## Planned Features
+## Design intent
+
+None of this is in a schematic yet. It is what the design reference in [hardware/DESIGN.md](hardware/DESIGN.md) specifies.
 
 ### RF
-- **RTC6705** 5.8GHz FM synthesizer: 40+ channels (A/B/E/F/R bands)
-- **SKY85743-21** FEM: PA with integrated power detector, ~500mW CW output
+- RTC6705 5.8GHz FM synthesizer: 40+ channels (A/B/E/F/R bands)
+- SKY85743-21 FEM: PA with integrated power detector, ~500mW CW output
 - IPEX/u.FL antenna connector
 
 ### OSD
@@ -19,12 +21,12 @@ Early stage: parts are selected and project-local libraries are in place. Schema
 - NTSC/PAL auto-detection
 
 ### MCU
-- **STM32G431KBU6**: ARM Cortex-M4F @ 170MHz, QFN-32
+- STM32G431KBU6: ARM Cortex-M4F @ 170MHz, QFN-32
 - MSP DisplayPort protocol (Betaflight native)
 - SmartAudio V2.1 fallback for legacy FCs
 
 ### Power
-- **2S-6S direct input** (7-36V) via LMR51420 buck to 5V
+- 2S-6S direct input (7-36V) via LMR51420 buck to 5V
 - 5V regulated output for camera
 - 3.3V LDO (TLV757, low-noise) for MCU and RF synth
 - Reverse polarity protection
@@ -35,7 +37,7 @@ Early stage: parts are selected and project-local libraries are in place. Schema
 - Boot-to-pit-mode
 - VPD closed-loop power control with logarithmic detector
 
-## Repository Structure
+## Repository structure
 
 ```
 OpenVTX/
@@ -52,7 +54,7 @@ OpenVTX/
 └── research/               ← RTC6705 replacement study
 ```
 
-## User Interface
+## Intended interface
 
 | Pad/Connector | Function |
 |---------------|----------|
